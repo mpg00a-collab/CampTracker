@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CampTracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root {
+  --forest:#2D4A2D; --forest-mid:#3D6B3D;
+  --cream:#F5F0E8; --parchment:#EDE5D0;
+  --text-dark:#1E2A1E; --text-mid:#4A5A4A; --text-light:#7A8A7A;
+  --card-bg:#FDFAF4; --hike-color:#2D7A4A; --caravan-color:#C4821A;
+  --swim:#1A7AB8; --fire:#D4400A; --pets:#7A4AB8;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+
+/* Header */
+#header{background:var(--forest);color:var(--cream);padding:10px 14px;display:flex;align-items:center;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.1);z-index:1000;gap:10px}
+#header h1{font-family:'Bitter',serif;font-size:19px;font-weight:700;color:var(--cream);white-space:nowrap}
+#header h1 span{color:#A8D8A8}
+#people-bar{display:flex;gap:7px;align-items:center;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;flex:1;padding:0 2px}
+#people-bar::-webkit-scrollbar{display:none}
+.person-bubble{display:flex;align-items:center;gap:5px;padding:4px 10px 4px 7px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity 0.2s,transform 0.15s;border:2px solid transparent;white-space:nowrap;user-select:none;flex-shrink:0}
+.person-bubble.hidden-person{opacity:0.35}
+.person-bubble:active{transform:scale(0.93)}
+.person-avatar{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0}
+
+/* Map */
+#map{flex:1;width:100%;z-index:1}
+
+/* Filter bar */
+#filter-bar{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:1000;background:rgba(45,74,45,0.92);border:1px solid rgba(168,216,168,0.2);border-radius:30px;padding:6px 10px}
+.filter-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s;white-space:nowrap;color:var(--cream);background:transparent;font-family:'Source Sans 3',sans-serif}
+.filter-btn svg{width:14px;height:14px;flex-shrink:0}
+.filter-btn.active-swim{background:rgba(26,122,184,0.3);border-color:rgba(26,122,184,0.7);color:#7FCFFF}
+.filter-btn.active-fire{background:rgba(212,64,10,0.3);border-color:rgba(212,64,10,0.7);color:#FFAA7F}
+.filter-btn.active-pets{background:rgba(122,74,184,0.3);border-color:rgba(122,74,184,0.7);color:#CFA8FF}
+
+/* FAB */
+#fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--forest-mid);border:2px solid rgba(168,216,168,0.4);color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1000;transition:transform 0.15s;box-shadow:0 4px 20px rgba(0,0,0,0.35)}
+#fab:active{transform:scale(0.93)}
+#fab svg{width:24px;height:24px}
+#file-input{display:none}
+
+/* Add modal */
+#add-modal{position:fixed;inset:0;background:rgba(20,35,20,0.93);z-index:4000;display:flex;align-items:flex-end;justify-content:center}
+#add-modal.hidden{display:none}
+.add-sheet{background:var(--card-bg);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px 36px}
+.sheet-handle{width:40px;height:4px;background:#D4C8A8;border-radius:2px;margin:0 auto 18px}
+.sheet-title{font-family:'Bitter',serif;font-size:18px;color:var(--text-dark);margin-bottom:16px;text-align:center}
+.sheet-tabs{display:flex;gap:8px;margin-bottom:16px}
+.sheet-tab{flex:1;padding:9px;border-radius:10px;border:1.5px solid #D4C8A8;background:white;font-size:14px;font-weight:600;font-family:'Source Sans 3',sans-serif;color:var(--text-light);cursor:pointer;text-align:center;transition:all 0.15s}
+.sheet-tab.active{background:var(--forest-mid);color:var(--cream);border-color:var(--forest-mid)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.url-input-row{display:flex;gap:8px}
+.url-input-row input{flex:1;padding:11px 13px;border:1.5px solid #D4C8A8;border-radius:10px;font-size:15px;font-family:'Source Sans 3',sans-serif;color:var(--text-dark);background:white;outline:none;min-width:0}
+.url-input-row input:focus{border-color:var(--forest-mid)}
+.url-go-btn{padding:11px 18px;background:var(--forest-mid);color:var(--cream);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer;white-space:nowrap}
+.img-upload-area{border:2px dashed #C8BCA0;border-radius:12px;padding:28px 20px;text-align:center;cursor:pointer}
+.img-upload-area p{color:var(--text-light);font-size:14px;margin-top:8px}
+.img-upload-area .big{font-size:32px}
+.sheet-cancel{width:100%;margin-top:12px;padding:11px;background:transparent;border:1.5px solid #D4C8A8;border-radius:10px;font-size:15px;font-family:'Source Sans 3',sans-serif;color:var(--text-mid);cursor:pointer}
+
+/* Name modal */
+#name-modal{position:fixed;inset:0;background:rgba(20,35,20,0.93);z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px}
+#name-modal.hidden{display:none}
+.modal-card{background:var(--card-bg);border-radius:16px;padding:28px 24px;width:100%;max-width:340px;text-align:center}
+.modal-card h2{font-family:'Bitter',serif;font-size:22px;color:var(--text-dark);margin-bottom:6px}
+.modal-card p{font-size:14px;color:var(--text-mid);margin-bottom:20px;line-height:1.5}
+.modal-card input{width:100%;padding:11px 14px;border:1.5px solid #D4C8A8;border-radius:10px;font-size:16px;font-family:'Source Sans 3',sans-serif;color:var(--text-dark);background:white;margin-bottom:14px;outline:none}
+.modal-card input:focus{border-color:var(--forest-mid)}
+.colour-picker{display:flex;gap:8px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.colour-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform 0.15s,border-color 0.15s}
+.colour-swatch.selected{border-color:var(--text-dark);transform:scale(1.15)}
+.modal-btn{width:100%;padding:12px;background:var(--forest-mid);color:var(--cream);border:none;border-radius:10px;font-size:16px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer}
+
+/* Loading */
+#loading-overlay{position:fixed;inset:0;background:rgba(30,42,30,0.88);z-index:3000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+#loading-overlay.active{display:flex}
+.spinner{width:44px;height:44px;border:3px solid rgba(168,216,168,0.2);border-top-color:#A8D8A8;border-radius:50%;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-text{font-family:'Bitter',serif;color:var(--cream);font-size:16px;text-align:center;padding:0 32px;line-height:1.6;max-width:300px}
+
+/* Popup */
+.camp-popup{background:var(--card-bg);border-radius:12px;overflow:hidden;width:290px}
+.popup-img{width:100%;height:130px;object-fit:cover}
+.popup-header{padding:11px 14px 9px;border-bottom:1px solid #E8E0CC}
+.popup-by{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:5px;color:white}
+.popup-badges{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.popup-type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.badge-hike{background:#E8F5EE;color:var(--hike-color)}
+.badge-caravan{background:#FDF0E0;color:var(--caravan-color)}
+.popup-name{font-family:'Bitter',serif;font-size:15px;font-weight:700;color:var(--text-dark);line-height:1.3;margin-bottom:8px}
+
+/* Feature icons row in popup */
+.popup-features{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
+.feat-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.feat-badge svg{width:12px;height:12px;flex-shrink:0}
+.feat-swim{background:#E0F0FA;color:var(--swim)}
+.feat-fire{background:#FAE8E0;color:var(--fire)}
+.feat-pets{background:#EFE0FA;color:var(--pets)}
+.feat-no{background:#F0F0EC;color:var(--text-light)}
+
+.popup-body{padding:9px 14px 11px}
+.popup-detail-row{display:flex;gap:8px;padding:4px 0;border-bottom:0.5px solid #EDE5D0;font-size:12px;line-height:1.4}
+.popup-detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--text-light);font-weight:600;min-width:68px;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;padding-top:1px}
+.detail-value{color:var(--text-mid);flex:1}
+.popup-footer{padding:7px 14px;background:var(--parchment);font-size:11px;color:var(--text-light);display:flex;justify-content:space-between;align-items:center}
+.popup-source-link{color:var(--hike-color);text-decoration:none;font-weight:600}
+
+/* Custom marker container — icons float above */
+.marker-wrap{position:relative;width:36px}
+.marker-feature-icons{position:absolute;top:-18px;left:50%;transform:translateX(-50%);display:flex;gap:2px;pointer-events:none}
+.mfi{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white;flex-shrink:0}
+.mfi svg{width:8px;height:8px}
+.mfi-swim{background:var(--swim)}
+.mfi-fire{background:var(--fire)}
+.mfi-pets{background:var(--pets)}
+
+/* Empty state */
+#empty-state{position:fixed;bottom:148px;left:50%;transform:translateX(-50%);background:rgba(45,74,45,0.92);border:1px solid rgba(168,216,168,0.25);border-radius:14px;padding:13px 18px;text-align:center;z-index:999;pointer-events:none;max-width:260px}
+#empty-state p{color:var(--cream);font-size:13px;line-height:1.5}
+#empty-state .big-icon{font-size:26px;margin-bottom:5px}
+
+/* Toast */
+#toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--text-dark);color:var(--cream);padding:9px 16px;border-radius:20px;font-size:13px;z-index:6000;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Leaflet overrides */
+.leaflet-popup-content-wrapper{padding:0!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.25)!important;background:transparent!important;overflow:hidden}
+.leaflet-popup-content{margin:0!important;width:auto!important}
+.leaflet-popup-tip-container{display:none}
+.leaflet-popup-close-button{color:#666!important;font-size:18px!important;right:6px!important;top:6px!important;z-index:10}
+</style>
+</head>
+<body>
+
+<div id="name-modal">
+  <div class="modal-card">
+    <div style="font-size:36px;margin-bottom:10px">⛺</div>
+    <h2>Welcome to CampTracker</h2>
+    <p>Enter your name so friends can see your pins on the shared map.</p>
+    <input type="text" id="name-input" placeholder="Your name e.g. Mark" maxlength="20" autocomplete="off">
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:10px;margin-top:-8px">Pick your colour</p>
+    <div class="colour-picker" id="colour-picker"></div>
+    <button class="modal-btn" id="name-submit">Let's go →</button>
+  </div>
+</div>
+
+<div id="add-modal" class="hidden">
+  <div class="add-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add a Campsite</div>
+    <div class="sheet-tabs">
+      <div class="sheet-tab active" id="tab-img" onclick="switchTab('img')">📷 Screenshot</div>
+      <div class="sheet-tab" id="tab-url" onclick="switchTab('url')">🔗 Paste Link</div>
+    </div>
+    <div class="tab-panel active" id="panel-img">
+      <div class="img-upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="big">🏕️</div>
+        <p>Tap to choose a campsite screenshot<br><span style="font-size:12px">from WikiCamps, Hipcamp, Google Maps etc</span></p>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-url">
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.5">Paste a link to any campsite page — WikiCamps, Hipcamp, Parks Victoria, NP booking sites, Google Maps, etc.</div>
+      <div class="url-input-row">
+        <input type="url" id="url-input" placeholder="https://..." autocomplete="off" autocorrect="off" autocapitalize="off">
+        <button class="url-go-btn" id="url-submit">Add →</button>
+      </div>
+    </div>
+    <button class="sheet-cancel" onclick="closeAddModal()">Cancel</button>
+  </div>
+</div>
+
+<div id="header">
+  <h1>Camp<span>Tracker</span></h1>
+  <div id="people-bar"></div>
+</div>
+
+<div id="map"></div>
+
+<!-- Feature filter bar -->
+<div id="filter-bar">
+  <button class="filter-btn" id="fbtn-swim" onclick="toggleFilter('swim')">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>
+    Swim
+  </button>
+  <button class="filter-btn" id="fbtn-fire" onclick="toggleFilter('fire')">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>
+    Fires
+  </button>
+  <button class="filter-btn" id="fbtn-pets" onclick="toggleFilter('pets')">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>
+    Pets
+  </button>
+</div>
+
+<div id="empty-state">
+  <div class="big-icon">⛺</div>
+  <p>Tap <strong>+</strong> to add a campsite via screenshot or link!</p>
+</div>
+
+<button id="fab" onclick="openAddModal()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="16"/>
+    <line x1="8" y1="12" x2="16" y2="12"/>
+  </svg>
+</button>
+<input type="file" id="file-input" accept="image/*" multiple>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div id="loading-text">Reading campsite image…</div>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, onChildAdded, onChildRemoved } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const GEMINI_KEY = 'AIzaSyChgHHsUbymeDBYJVEVp23bAB2aQ709yjc';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+const PERSON_KEY = 'camptracker_person_v4';
+const COLOURS = ['#E05A2B','#2D7A4A','#1A6FA8','#9B4DB8','#C4821A','#C4336A','#3A7A7A','#6B5A2D'];
+
+const firebaseConfig = {
+  apiKey:"AIzaSyBxNPvrNfJPcmn_BqYC1K2-BYCwHGEfOlk",
+  authDomain:"campsite-49307.firebaseapp.com",
+  projectId:"campsite-49307",
+  storageBucket:"campsite-49307.firebasestorage.app",
+  messagingSenderId:"256490066173",
+  appId:"1:256490066173:web:68aba44050d285ac5f6e94",
+  databaseURL:"https://campsite-49307-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const sitesRef = ref(db, 'campsites');
+
+const map = L.map('map',{zoomControl:true,attributionControl:false}).setView([-25.2744,133.7751],4);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);
+
+let me = null, allSites = {}, allMarkers = {}, hiddenPeople = new Set(), knownPeople = {}, selectedColour = COLOURS[0];
+// activeFilters: which features must be present (empty = show all)
+let activeFilters = new Set();
+
+// ── SVG icon paths ──
+const ICONS = {
+  swim: `<svg viewBox="0 0 16 16" fill="white"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>`,
+  fire: `<svg viewBox="0 0 16 16" fill="white"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>`,
+  pets: `<svg viewBox="0 0 16 16" fill="white"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>`
+};
+
+// ── Utilities ──
+function hexAlpha(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`}
+function showToast(msg,d=3500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
+function setLoading(active,text='Searching for campsite details…'){document.getElementById('loading-text').textContent=text;document.getElementById('loading-overlay').classList.toggle('active',active)}
+
+function siteVisible(site) {
+  if (hiddenPeople.has(site.addedBy)) return false;
+  const f = site.features || {};
+  for (const filter of activeFilters) {
+    if (!f[filter]) return false;
+  }
+  return true;
+}
+function updateEmptyState(){
+  const vis = Object.keys(allSites).filter(id=>siteVisible(allSites[id])).length;
+  document.getElementById('empty-state').style.display = vis>0?'none':'block';
+}
+
+// ── Modal controls ──
+window.openAddModal  = ()=>document.getElementById('add-modal').classList.remove('hidden');
+window.closeAddModal = ()=>document.getElementById('add-modal').classList.add('hidden');
+window.switchTab = (tab)=>{
+  document.querySelectorAll('.sheet-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+};
+document.getElementById('add-modal').addEventListener('click',e=>{if(e.target===document.getElementById('add-modal'))closeAddModal()});
+
+// ── Feature filters ──
+window.toggleFilter = (feat) => {
+  const btn = document.getElementById('fbtn-'+feat);
+  if (activeFilters.has(feat)) {
+    activeFilters.delete(feat);
+    btn.classList.remove('active-'+feat);
+  } else {
+    activeFilters.add(feat);
+    btn.classList.add('active-'+feat);
+  }
+  applyVisibility();
+};
+
+// ── People bar ──
+function rebuildPeopleBar(){
+  const bar=document.getElementById('people-bar');
+  bar.innerHTML='';
+  Object.entries(knownPeople).forEach(([name,colour])=>{
+    const hidden=hiddenPeople.has(name);
+    const initials=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const el=document.createElement('div');
+    el.className='person-bubble'+(hidden?' hidden-person':'');
+    el.style.background=hexAlpha(colour,0.15);
+    el.style.borderColor=hexAlpha(colour,0.4);
+    el.innerHTML=`<div class="person-avatar" style="background:${colour}">${initials}</div><span style="color:${colour}">${name}</span>`;
+    el.onclick=()=>{hiddenPeople.has(name)?hiddenPeople.delete(name):hiddenPeople.add(name);rebuildPeopleBar();applyVisibility()};
+    bar.appendChild(el);
+  });
+}
+function applyVisibility(){
+  Object.entries(allSites).forEach(([id,site])=>{
+    const m=allMarkers[id]; if(!m) return;
+    siteVisible(site)?m.addTo(map):map.removeLayer(m);
+  });
+  updateEmptyState();
+}
+function registerPerson(name,colour){if(name&&!knownPeople[name]){knownPeople[name]=colour||'#888';rebuildPeopleBar()}}
+
+// ── Marker icon with floating feature dots ──
+function createMarkerIcon(type, colour, features) {
+  const typeIcon = type==='hike'?'🥾':'🚐';
+  const f = features || {};
+
+  // Build floating icon dots above the pin
+  let dotsHTML = '';
+  if (f.swim) dotsHTML += `<div class="mfi mfi-swim">${ICONS.swim}</div>`;
+  if (f.fire) dotsHTML += `<div class="mfi mfi-fire">${ICONS.fire}</div>`;
+  if (f.pets) dotsHTML += `<div class="mfi mfi-pets">${ICONS.pets}</div>`;
+
+  const totalDots = (f.swim?1:0)+(f.fire?1:0)+(f.pets?1:0);
+  const wrapW = Math.max(36, totalDots*16+(totalDots-1)*2);
+
+  const html = `<div class="marker-wrap" style="width:${wrapW}px">
+    ${dotsHTML ? `<div class="marker-feature-icons">${dotsHTML}</div>` : ''}
+    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44" style="display:block;margin:0 auto">
+      <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26S36 31.5 36 18C36 8.06 27.94 0 18 0z" fill="${colour}" stroke="white" stroke-width="1.5"/>
+      <text x="18" y="23" text-anchor="middle" font-size="14">${typeIcon}</text>
+    </svg>
+  </div>`;
+
+  return L.divIcon({
+    html,
+    className:'',
+    iconSize:[wrapW, 62],
+    iconAnchor:[wrapW/2, 62],
+    popupAnchor:[0, -62]
+  });
+}
+
+// ── Popup HTML ──
+function featBadge(label, cls, icon, yes) {
+  if (yes === null || yes === undefined) return '';
+  return yes
+    ? `<span class="feat-badge ${cls}">${icon} ${label}</span>`
+    : `<span class="feat-badge feat-no">No ${label}</span>`;
+}
+
+function buildPopupHTML(site){
+  const typeLabel=site.type==='hike'?'🥾 Hike-in only':'🚐 Caravan accessible';
+  const badgeClass=site.type==='hike'?'badge-hike':'badge-caravan';
+  const date=site.addedAt?new Date(site.addedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'';
+  const d=site.details||{};
+  const f=site.features||{};
+  const rows=[
+    ['Region',d.region||d.state],
+    ['Facilities',d.facilities],
+    ['Access',d.access],
+    ['Cost',d.cost],
+    ['Water',d.water],
+    ['Notes',d.notes],
+  ].filter(([,v])=>v&&v!=='null'&&v!=='unknown'&&v!=='Unknown');
+  const rowsHTML=rows.map(([l,v])=>`<div class="popup-detail-row"><span class="detail-label">${l}</span><span class="detail-value">${v}</span></div>`).join('');
+  const imgHTML=site.imageData?`<img class="popup-img" src="${site.imageData}" alt="">`:'';
+  const colour=knownPeople[site.addedBy]||'#888';
+  const srcHTML=site.sourceUrl?`<a class="popup-source-link" href="${site.sourceUrl}" target="_blank">Source ↗</a>`:'';
+
+  const featuresHTML = `<div class="popup-features">
+    ${f.swim !== undefined ? featBadge('Swimming', 'feat-swim', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>', f.swim) : ''}
+    ${f.fire !== undefined ? featBadge('Fires', 'feat-fire', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>', f.fire) : ''}
+    ${f.pets !== undefined ? featBadge('Pets', 'feat-pets', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>', f.pets) : ''}
+  </div>`;
+
+  return `<div class="camp-popup">${imgHTML}
+    <div class="popup-header">
+      <div class="popup-badges">
+        <span class="popup-by" style="background:${colour}">${site.addedBy||'?'}</span>
+        <span class="popup-type-badge ${badgeClass}">${typeLabel}</span>
+      </div>
+      <div class="popup-name">${site.name}</div>
+      ${featuresHTML}
+    </div>
+    <div class="popup-body">${rowsHTML||'<div style="color:var(--text-light);font-size:12px;padding:4px 0">No details found</div>'}</div>
+    <div class="popup-footer"><span>${date} · ${Number(site.lat).toFixed(4)}, ${Number(site.lng).toFixed(4)}</span>${srcHTML}</div>
+  </div>`;
+}
+
+function addSiteToMap(id, site){
+  registerPerson(site.addedBy, site.addedByColour);
+  const colour = knownPeople[site.addedBy]||'#888';
+  const marker = L.marker([site.lat,site.lng],{icon:createMarkerIcon(site.type,colour,site.features)});
+  marker.bindPopup(buildPopupHTML(site),{maxWidth:310,minWidth:290});
+  if(siteVisible(site)) marker.addTo(map);
+  allMarkers[id]=marker;
+  updateEmptyState();
+}
+
+// ── Firebase ──
+onChildAdded(sitesRef,snap=>{
+  const id=snap.key,site=snap.val();
+  if(!site?.lat||!site?.lng) return;
+  allSites[id]=site; addSiteToMap(id,site);
+});
+onChildRemoved(sitesRef,snap=>{
+  const id=snap.key;
+  if(allMarkers[id]){map.removeLayer(allMarkers[id]);delete allMarkers[id]}
+  delete allSites[id]; updateEmptyState();
+});
+
+// ── Gemini ──
+const FEATURE_JSON = `"features": {
+    "swim": <true if there is a natural swimming spot nearby (river, lake, waterhole, creek, beach, billabong) — false if landlocked/no water nearby — MUST be true or false>,
+    "fire": <true if campfires or fire pits are permitted — false if fires prohibited — MUST be true or false>,
+    "pets": <true if pets/dogs are allowed — false if no pets permitted — MUST be true or false>
+  }`;
+
+function buildSearchPrompt(name) {
+  return `Search the web for detailed information about the Australian campsite: "${name}"
+
+Return ONLY raw JSON, no markdown:
+{
+  "name": "Official campsite name",
+  "lat": <decimal latitude>,
+  "lng": <decimal longitude>,
+  "type": "<hike or caravan>",
+  ${FEATURE_JSON},
+  "details": {
+    "region": "State and region e.g. Grampians, Victoria",
+    "facilities": "Full list e.g. flush toilets, showers, BBQ, powered sites",
+    "access": "Road access e.g. sealed road / 4WD required / walk-in 3km",
+    "cost": "Cost per night e.g. $15/night or Free",
+    "water": "Water availability",
+    "notes": "Bookings, fire restrictions, dog notes, max stay, nearby attractions"
+  }
+}
+type=caravan if caravans can access on normal roads. type=hike if walk-in/4WD/boat only.
+Australian lat: -10 to -44, lng: 113 to 154. Keep every string value under 25 words. Only return JSON.`;
+}
+
+function buildUrlPrompt(url) {
+  return `Look up this campsite URL and search the web for information: ${url}
+
+Return ONLY raw JSON, no markdown:
+{
+  "name": "Official campsite name",
+  "lat": <decimal latitude>,
+  "lng": <decimal longitude>,
+  "type": "<hike or caravan>",
+  ${FEATURE_JSON},
+  "sourceUrl": "${url}",
+  "details": {
+    "region": "State and region",
+    "facilities": "All facilities",
+    "access": "How to get there",
+    "cost": "Cost per night",
+    "water": "Water availability",
+    "notes": "Bookings, restrictions, tips"
+  }
+}
+type=caravan if driveable by caravan. type=hike if walk-in/4WD/boat only.
+Australian coordinates only. Keep every string value under 25 words. Only return JSON.`;
+}
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_,reject) => setTimeout(()=>reject(new Error(`Timed out after ${ms/1000}s (${label})`)), ms))
+  ]);
+}
+
+function resizeImageIfNeeded(base64) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1024;
+      if (img.width <= MAX && img.height <= MAX) { resolve(base64); return; }
+      const scale = MAX / Math.max(img.width, img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => resolve(base64);
+    img.src = base64;
+  });
+}
+
+let debugHideTimer = null;
+let debugPinned = false;
+
+function showDebug(label, content) {
+  // Create persistent toggle button if it doesn't exist
+  if (!document.getElementById('debug-toggle')) {
+    const btn = document.createElement('button');
+    btn.id = 'debug-toggle';
+    btn.textContent = '🐛';
+    btn.title = 'Show debug log';
+    btn.style.cssText = 'position:fixed;bottom:90px;left:14px;width:28px;height:28px;border-radius:50%;background:#111;color:#00ff88;border:1px solid #00ff88;font-size:13px;cursor:pointer;z-index:9998;display:none;padding:0;line-height:1';
+    btn.onclick = () => { debugPinned = true; showPanel(); };
+    document.body.appendChild(btn);
+  }
+
+  let panel = document.getElementById('debug-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'debug-panel';
+    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:55vh;overflow-y:auto;background:#111;color:#00ff88;font-family:monospace;font-size:11px;padding:10px 12px;z-index:9999;border-top:2px solid #00ff88;transition:transform 0.3s ease';
+    const hdr = document.createElement('div');
+    hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;position:sticky;top:0;background:#111;padding-bottom:4px;border-bottom:1px solid #333';
+    hdr.innerHTML = '<span style="color:#ffaa00;font-weight:bold">🐛 DEBUG</span>';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕ close';
+    closeBtn.style.cssText = 'background:#333;color:white;border:none;padding:3px 8px;cursor:pointer;border-radius:4px;font-size:11px';
+    closeBtn.onclick = () => { debugPinned = false; hidePanel(); };
+    hdr.appendChild(closeBtn);
+    panel.appendChild(hdr);
+    // Keep visible while hovering
+    panel.addEventListener('mouseenter', () => { debugPinned = true; clearTimeout(debugHideTimer); });
+    panel.addEventListener('mouseleave', () => { debugPinned = false; scheduleHide(); });
+    panel.addEventListener('touchstart', () => { debugPinned = true; clearTimeout(debugHideTimer); }, {passive:true});
+    document.body.appendChild(panel);
+  }
+
+  const entry = document.createElement('div');
+  entry.style.cssText = 'margin-top:8px;border-top:1px solid #222;padding-top:6px';
+  entry.innerHTML = `<div style="color:#ffaa00;margin-bottom:3px">▶ ${label}</div><pre style="white-space:pre-wrap;word-break:break-all;color:#ccc;margin:0">${String(content).replace(/</g,'&lt;')}</pre>`;
+  panel.appendChild(entry);
+  panel.scrollTop = panel.scrollHeight;
+
+  showPanel();
+  scheduleHide();
+}
+
+function showPanel() {
+  const panel = document.getElementById('debug-panel');
+  if (panel) panel.style.transform = 'translateY(0)';
+  const btn = document.getElementById('debug-toggle');
+  if (btn) btn.style.display = 'block';
+}
+
+function hidePanel() {
+  const panel = document.getElementById('debug-panel');
+  if (panel) panel.style.transform = 'translateY(100%)';
+}
+
+function scheduleHide() {
+  clearTimeout(debugHideTimer);
+  if (!debugPinned) {
+    debugHideTimer = setTimeout(() => { if (!debugPinned) hidePanel(); }, 3000);
+  }
+}
+
+async function callGemini(body) {
+  const res = await withTimeout(
+    fetch(GEMINI_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}),
+    25000, 'API call'
+  );
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = data.error?.message || `Gemini HTTP ${res.status}`;
+    showDebug(`API ERROR (HTTP ${res.status})`, JSON.stringify(data.error || data, null, 2));
+    throw new Error(msg);
+  }
+  const finishReason = data.candidates?.[0]?.finishReason;
+  const text = data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || '';
+  showDebug(`RAW RESPONSE (finishReason: ${finishReason})`, text || '(empty — no text parts)');
+  if (!text) {
+    showDebug('FULL RESPONSE OBJECT', JSON.stringify(data, null, 2));
+    throw new Error(`Empty response from Gemini (finishReason: ${finishReason})`);
+  }
+  return text;
+}
+
+function extractJSON(text) {
+  // Strip markdown code fences first
+  const stripped = text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+  const start = stripped.indexOf('{');
+  const end = stripped.lastIndexOf('}');
+  if (start === -1 || end <= start) {
+    showDebug('extractJSON FAILED — no braces found in', stripped.slice(0, 300));
+    throw new Error(`No JSON found in response`);
+  }
+  const candidate = stripped.slice(start, end + 1);
+  try {
+    return JSON.parse(candidate);
+  } catch(e) {
+    showDebug('extractJSON PARSE ERROR', `Error: ${e.message}\n\nCandidate:\n${candidate.slice(0, 500)}`);
+    throw new Error(`JSON parse failed: ${e.message}`);
+  }
+}
+
+async function callGeminiWithSearch(prompt) {
+  const text = await callGemini({
+    contents:[{parts:[{text:prompt}]}],
+    tools:[{google_search:{}}],
+    generationConfig:{temperature:0.1, maxOutputTokens:4096}
+  });
+  return extractJSON(text);
+}
+
+async function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.onload = e => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function analyseImageThenSearch(file) {
+  // Step 1: read file
+  setLoading(true, 'Reading image…');
+  let fullBase64 = await readFileAsBase64(file);
+
+  // Step 2: resize if large
+  setLoading(true, 'Preparing image…');
+  fullBase64 = await resizeImageIfNeeded(fullBase64);
+  const base64Data = fullBase64.split(',')[1];
+  const mimeType = 'image/jpeg';
+
+  // Step 3: read campsite name from image
+  setLoading(true, 'Reading campsite name from image…');
+  const readPrompt = `Look at this campsite screenshot. Read all visible text.
+What is the NAME of the campsite? (the heading or title, e.g. "Bells Beach Campground")
+What STATE or REGION is shown if any?
+Reply ONLY with this JSON (no markdown, no extra text):
+{"name":"campsite name here","region":"state or null"}`;
+
+  const t1 = await callGemini({
+    contents:[{parts:[
+      {inline_data:{mime_type:mimeType, data:base64Data}},
+      {text:readPrompt}
+    ]}],
+    generationConfig:{temperature:0, maxOutputTokens:200}
+  });
+
+  let nameResult;
+  try {
+    nameResult = extractJSON(t1);
+  } catch(e) {
+    throw new Error(`Could not read campsite name from image. Gemini said: ${t1.slice(0,100)}`);
+  }
+  if (!nameResult?.name) throw new Error('No campsite name found in image — make sure the name is clearly visible');
+
+  // Step 4: web search for full details
+  const searchName = nameResult.region
+    ? `${nameResult.name} ${nameResult.region} Australia campsite`
+    : `${nameResult.name} Australia campsite`;
+  setLoading(true, `Found "${nameResult.name}" — searching web…`);
+  const parsed = await callGeminiWithSearch(buildSearchPrompt(searchName));
+  return { parsed, imageData: fullBase64 };
+}
+
+async function analyseUrl(url){
+  setLoading(true,'Looking up campsite from link…');
+  const parsed=await withTimeout(callGeminiWithSearch(buildUrlPrompt(url)), 30000, 'URL lookup');
+  parsed.sourceUrl=url;
+  return {parsed,imageData:null};
+}
+
+async function saveSite(parsed, imageData, sourceUrl){
+  if(!parsed.lat||!parsed.lng) throw new Error('No coordinates found');
+  const site={
+    name:parsed.name||'Unknown Campsite',
+    lat:parseFloat(parsed.lat),
+    lng:parseFloat(parsed.lng),
+    type:parsed.type==='caravan'?'caravan':'hike',
+    features:{
+      swim: parsed.features?.swim===true || parsed.features?.swim===false ? parsed.features.swim : null,
+      fire: parsed.features?.fire===true || parsed.features?.fire===false ? parsed.features.fire : null,
+      pets: parsed.features?.pets===true || parsed.features?.pets===false ? parsed.features.pets : null,
+    },
+    details:parsed.details||{},
+    imageData:imageData||null,
+    sourceUrl:sourceUrl||parsed.sourceUrl||null,
+    addedBy:me.name,
+    addedByColour:me.colour,
+    addedAt:new Date().toISOString()
+  };
+  knownPeople[me.name]=me.colour;
+  await push(sitesRef,site);
+  return site;
+}
+
+// ── File input ──
+document.getElementById('file-input').addEventListener('change',async(e)=>{
+  if(!me){showToast('Please enter your name first');return}
+  const files=Array.from(e.target.files);
+  if(!files.length) return;
+  e.target.value='';
+  closeAddModal();
+  let added=0,failed=0;
+  for(let i=0;i<files.length;i++){
+    try{
+      const{parsed,imageData}=await analyseImageThenSearch(files[i]);
+      await saveSite(parsed,imageData,null);
+      added++;
+    }catch(err){
+      console.error('Image failed:',err);
+      setLoading(false);
+      showToast(`⚠️ ${err.message}`, 5000);
+      failed++;
+    }
+  }
+  setLoading(false);
+  if(added>0){
+    showToast(`⛺ ${added} campsite${added>1?'s':''} added!`);
+    const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);
+    if(ll.length) map.fitBounds(L.latLngBounds(ll).pad(0.3));
+  }
+});
+
+// ── URL submit ──
+document.getElementById('url-submit').addEventListener('click',async()=>{
+  if(!me){showToast('Please enter your name first');return}
+  const url=document.getElementById('url-input').value.trim();
+  if(!url||!url.startsWith('http')){showToast('Please paste a valid URL starting with http');return}
+  closeAddModal();
+  try{
+    const{parsed,imageData}=await analyseUrl(url);
+    await saveSite(parsed,imageData,url);
+    setLoading(false);
+    showToast(`⛺ ${parsed.name} added!`);
+    const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);
+    if(ll.length) map.fitBounds(L.latLngBounds(ll).pad(0.3));
+    document.getElementById('url-input').value='';
+  }catch(err){
+    setLoading(false);
+    console.error('URL failed:',err);
+    showToast(`⚠️ ${err.message}`, 5000);
+  }
+});
+document.getElementById('url-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('url-submit').click()});
+
+// ── Colour picker ──
+const picker=document.getElementById('colour-picker');
+COLOURS.forEach((c,i)=>{
+  const sw=document.createElement('div');
+  sw.className='colour-swatch'+(i===0?' selected':'');
+  sw.style.background=c;
+  sw.onclick=()=>{document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));sw.classList.add('selected');selectedColour=c};
+  picker.appendChild(sw);
+});
+
+// ── Name modal ──
+document.getElementById('name-submit').onclick=()=>{
+  const name=document.getElementById('name-input').value.trim();
+  if(!name){document.getElementById('name-input').focus();return}
+  me={name,colour:selectedColour};
+  localStorage.setItem(PERSON_KEY,JSON.stringify(me));
+  document.getElementById('name-modal').classList.add('hidden');
+  knownPeople[me.name]=me.colour;
+  rebuildPeopleBar();
+};
+document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('name-submit').click()});
+
+// ── Restore identity ──
+try{
+  const saved=JSON.parse(localStorage.getItem(PERSON_KEY));
+  if(saved?.name){
+    me=saved;
+    document.getElementById('name-modal').classList.add('hidden');
+    knownPeople[me.name]=me.colour;
+    rebuildPeopleBar();
+    COLOURS.forEach((c,i)=>{document.querySelectorAll('.colour-swatch')[i].classList.toggle('selected',c===me.colour)});
+    selectedColour=me.colour;
+  }
+}catch(e){}
+</script>
+</body>
+</html>
