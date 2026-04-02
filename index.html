@@ -5,17 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CampTracker">
+<meta name="theme-color" content="#2D4A2D">
 <title>CampTracker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232D4A2D'/%3E%3Cpolygon points='80,380 210,160 340,380' fill='%235A8F5A'/%3E%3Cpolygon points='200,380 310,200 420,380' fill='%233D6B3D'/%3E%3Cpolygon points='210,160 235,210 185,210' fill='%23F5F0E8'/%3E%3Cpolygon points='310,200 330,240 290,240' fill='%23F5F0E8'/%3E%3Ccircle cx='390' cy='130' r='45' fill='%23F5C842'/%3E%3Cpolygon points='130,380 160,300 190,380' fill='%231E2A1E'/%3E%3Crect x='150' y='375' width='20' height='20' fill='%231E2A1E'/%3E%3Crect x='60' y='375' width='392' height='18' rx='9' fill='%23A8D8A8'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232D4A2D'/%3E%3Cpolygon points='80,380 210,160 340,380' fill='%235A8F5A'/%3E%3Cpolygon points='200,380 310,200 420,380' fill='%233D6B3D'/%3E%3Cpolygon points='210,160 235,210 185,210' fill='%23F5F0E8'/%3E%3Cpolygon points='310,200 330,240 290,240' fill='%23F5F0E8'/%3E%3Ccircle cx='390' cy='130' r='45' fill='%23F5C842'/%3E%3Cpolygon points='130,380 160,300 190,380' fill='%231E2A1E'/%3E%3Crect x='150' y='375' width='20' height='20' fill='%231E2A1E'/%3E%3Crect x='60' y='375' width='392' height='18' rx='9' fill='%23A8D8A8'/%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22CampTracker%22%2C%22short_name%22%3A%22CampTracker%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%232D4A2D%22%2C%22theme_color%22%3A%22%232D4A2D%22%7D">
 <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-:root {
-  --forest:#2D4A2D; --forest-mid:#3D6B3D;
-  --cream:#F5F0E8; --parchment:#EDE5D0;
-  --text-dark:#1E2A1E; --text-mid:#4A5A4A; --text-light:#7A8A7A;
-  --card-bg:#FDFAF4; --hike-color:#2D7A4A; --caravan-color:#C4821A;
-  --swim:#1A7AB8; --fire:#D4400A; --pets:#7A4AB8;
+:root{
+  --forest:#2D4A2D;--forest-mid:#3D6B3D;
+  --cream:#F5F0E8;--parchment:#EDE5D0;
+  --text-dark:#1E2A1E;--text-mid:#4A5A4A;--text-light:#7A8A7A;
+  --card-bg:#FDFAF4;--hike-color:#2D7A4A;--caravan-color:#C4821A;
+  --swim:#1A7AB8;--fire:#D4400A;--pets:#7A4AB8;--stayed:#2D7A4A;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100dvh;overflow:hidden;display:flex;flex-direction:column}
@@ -35,18 +40,22 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 #map{flex:1;width:100%;z-index:1}
 
 /* Filter bar */
-#filter-bar{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);display:flex;gap:7px;z-index:1000;background:rgba(45,74,45,0.92);border:1px solid rgba(168,216,168,0.2);border-radius:30px;padding:6px 10px}
-.filter-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s;white-space:nowrap;color:var(--cream);background:transparent;font-family:'Source Sans 3',sans-serif}
-.filter-btn svg{width:14px;height:14px;flex-shrink:0}
+#filter-bar{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:1000;background:rgba(45,74,45,0.92);border:1px solid rgba(168,216,168,0.2);border-radius:30px;padding:5px 8px;max-width:95vw;overflow-x:auto;scrollbar-width:none}
+#filter-bar::-webkit-scrollbar{display:none}
+.filter-btn{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid transparent;transition:all 0.15s;white-space:nowrap;color:var(--cream);background:transparent;font-family:'Source Sans 3',sans-serif}
+.filter-btn svg{width:13px;height:13px;flex-shrink:0}
 .filter-btn.active-swim{background:rgba(26,122,184,0.3);border-color:rgba(26,122,184,0.7);color:#7FCFFF}
 .filter-btn.active-fire{background:rgba(212,64,10,0.3);border-color:rgba(212,64,10,0.7);color:#FFAA7F}
 .filter-btn.active-pets{background:rgba(122,74,184,0.3);border-color:rgba(122,74,184,0.7);color:#CFA8FF}
+.filter-btn.active-stayed{background:rgba(45,122,74,0.35);border-color:rgba(45,122,74,0.8);color:#A8F0C0}
+.filter-btn.active-notstayed{background:rgba(180,140,0,0.25);border-color:rgba(180,140,0,0.7);color:#FFE090}
+.filter-divider{width:1px;background:rgba(255,255,255,0.15);margin:3px 2px}
 
 /* FAB */
 #fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--forest-mid);border:2px solid rgba(168,216,168,0.4);color:var(--cream);cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1000;transition:transform 0.15s;box-shadow:0 4px 20px rgba(0,0,0,0.35)}
 #fab:active{transform:scale(0.93)}
 #fab svg{width:24px;height:24px}
-#file-input{display:none}
+#file-input,#note-photo-input{display:none}
 
 /* Add modal */
 #add-modal{position:fixed;inset:0;background:rgba(20,35,20,0.93);z-index:4000;display:flex;align-items:flex-end;justify-content:center}
@@ -67,6 +76,33 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 .img-upload-area p{color:var(--text-light);font-size:14px;margin-top:8px}
 .img-upload-area .big{font-size:32px}
 .sheet-cancel{width:100%;margin-top:12px;padding:11px;background:transparent;border:1.5px solid #D4C8A8;border-radius:10px;font-size:15px;font-family:'Source Sans 3',sans-serif;color:var(--text-mid);cursor:pointer}
+
+/* Notes/photos sheet */
+#notes-modal{position:fixed;inset:0;background:rgba(20,35,20,0.93);z-index:4500;display:flex;align-items:flex-end;justify-content:center}
+#notes-modal.hidden{display:none}
+.notes-sheet{background:var(--card-bg);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:85vh;overflow-y:auto}
+.notes-site-name{font-family:'Bitter',serif;font-size:16px;font-weight:700;color:var(--text-dark);margin-bottom:14px;text-align:center}
+
+/* Stayed toggle in notes sheet */
+.stayed-toggle{display:flex;gap:8px;margin-bottom:16px}
+.stayed-btn{flex:1;padding:10px;border-radius:10px;border:1.5px solid #D4C8A8;background:white;font-size:13px;font-weight:600;font-family:'Source Sans 3',sans-serif;color:var(--text-light);cursor:pointer;text-align:center;transition:all 0.15s}
+.stayed-btn.active-yes{background:#E8F5EE;border-color:#2D7A4A;color:#2D7A4A}
+.stayed-btn.active-no{background:#FDF8E8;border-color:#C4821A;color:#C4821A}
+
+/* Notes textarea */
+.notes-label{font-size:12px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;display:block}
+.notes-textarea{width:100%;padding:11px 13px;border:1.5px solid #D4C8A8;border-radius:10px;font-size:14px;font-family:'Source Sans 3',sans-serif;color:var(--text-dark);background:white;outline:none;resize:none;min-height:90px;line-height:1.5}
+.notes-textarea:focus{border-color:var(--forest-mid)}
+
+/* Photo strip */
+.photos-label{font-size:12px;font-weight:600;color:var(--text-light);text-transform:uppercase;letter-spacing:0.3px;margin:14px 0 6px;display:block}
+.photo-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.photo-strip::-webkit-scrollbar{display:none}
+.photo-thumb{width:80px;height:80px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer}
+.photo-add-btn{width:80px;height:80px;border-radius:8px;border:2px dashed #C8BCA0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;gap:4px;color:var(--text-light);font-size:11px;font-weight:600;background:white}
+.photo-add-btn svg{width:22px;height:22px;color:var(--text-light)}
+.notes-save-btn{width:100%;margin-top:16px;padding:12px;background:var(--forest-mid);color:var(--cream);border:none;border-radius:10px;font-size:15px;font-weight:600;font-family:'Source Sans 3',sans-serif;cursor:pointer}
+.notes-save-btn:active{background:var(--forest)}
 
 /* Name modal */
 #name-modal{position:fixed;inset:0;background:rgba(20,35,20,0.93);z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -90,40 +126,50 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 
 /* Popup */
 .camp-popup{background:var(--card-bg);border-radius:12px;overflow:hidden;width:290px}
-.popup-img{width:100%;height:130px;object-fit:cover}
-.popup-header{padding:11px 14px 9px;border-bottom:1px solid #E8E0CC}
-.popup-by{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:5px;color:white}
-.popup-badges{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
-.popup-type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.popup-img{width:100%;height:120px;object-fit:cover}
+.popup-header{padding:10px 13px 8px;border-bottom:1px solid #E8E0CC}
+.popup-by{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:4px;color:white}
+.popup-badges{display:flex;gap:5px;align-items:center;margin-bottom:5px;flex-wrap:wrap}
+.popup-type-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px}
+.popup-stayed-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-hike{background:#E8F5EE;color:var(--hike-color)}
 .badge-caravan{background:#FDF0E0;color:var(--caravan-color)}
-.popup-name{font-family:'Bitter',serif;font-size:15px;font-weight:700;color:var(--text-dark);line-height:1.3;margin-bottom:8px}
-
-/* Feature icons row in popup */
-.popup-features{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px}
-.feat-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
-.feat-badge svg{width:12px;height:12px;flex-shrink:0}
+.badge-stayed{background:#E8F5EE;color:#2D7A4A}
+.badge-wishlist{background:#FDF8E8;color:#C4821A}
+.popup-name{font-family:'Bitter',serif;font-size:15px;font-weight:700;color:var(--text-dark);line-height:1.3;margin-bottom:7px}
+.popup-features{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:2px}
+.feat-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.feat-badge svg{width:11px;height:11px;flex-shrink:0}
 .feat-swim{background:#E0F0FA;color:var(--swim)}
 .feat-fire{background:#FAE8E0;color:var(--fire)}
 .feat-pets{background:#EFE0FA;color:var(--pets)}
 .feat-no{background:#F0F0EC;color:var(--text-light)}
-
-.popup-body{padding:9px 14px 11px}
-.popup-detail-row{display:flex;gap:8px;padding:4px 0;border-bottom:0.5px solid #EDE5D0;font-size:12px;line-height:1.4}
+.popup-body{padding:8px 13px 0}
+.popup-detail-row{display:flex;gap:8px;padding:3px 0;border-bottom:0.5px solid #EDE5D0;font-size:12px;line-height:1.4}
 .popup-detail-row:last-child{border-bottom:none}
-.detail-label{color:var(--text-light);font-weight:600;min-width:68px;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;padding-top:1px}
+.detail-label{color:var(--text-light);font-weight:600;min-width:64px;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;padding-top:1px}
 .detail-value{color:var(--text-mid);flex:1}
-.popup-footer{padding:7px 14px;background:var(--parchment);font-size:11px;color:var(--text-light);display:flex;justify-content:space-between;align-items:center}
-.popup-source-link{color:var(--hike-color);text-decoration:none;font-weight:600}
+/* User notes in popup */
+.popup-user-notes{padding:7px 13px;background:#F5F0E8;border-top:0.5px solid #EDE5D0;font-size:12px;color:var(--text-mid);line-height:1.5;font-style:italic}
+/* User photos in popup */
+.popup-user-photos{display:flex;gap:5px;padding:8px 13px;overflow-x:auto;scrollbar-width:none;background:#FDFAF4;border-top:0.5px solid #EDE5D0}
+.popup-user-photos::-webkit-scrollbar{display:none}
+.popup-user-photos img{width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0;cursor:pointer}
+.popup-footer{padding:6px 13px 8px;background:var(--parchment);font-size:11px;color:var(--text-light);display:flex;justify-content:space-between;align-items:center;gap:6px}
+.popup-source-link{color:var(--hike-color);text-decoration:none;font-weight:600;white-space:nowrap}
+.popup-notes-btn{background:var(--forest-mid);color:white;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif;white-space:nowrap}
 
-/* Custom marker container — icons float above */
-.marker-wrap{position:relative;width:36px}
+/* Marker */
+.marker-wrap{position:relative}
 .marker-feature-icons{position:absolute;top:-18px;left:50%;transform:translateX(-50%);display:flex;gap:2px;pointer-events:none}
 .mfi{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white;flex-shrink:0}
 .mfi svg{width:8px;height:8px}
 .mfi-swim{background:var(--swim)}
 .mfi-fire{background:var(--fire)}
 .mfi-pets{background:var(--pets)}
+/* Stayed tick on pin */
+.marker-stayed-tick{position:absolute;bottom:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#2D7A4A;border:1.5px solid white;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.marker-stayed-tick svg{width:8px;height:8px}
 
 /* Empty state */
 #empty-state{position:fixed;bottom:148px;left:50%;transform:translateX(-50%);background:rgba(45,74,45,0.92);border:1px solid rgba(168,216,168,0.25);border-radius:14px;padding:13px 18px;text-align:center;z-index:999;pointer-events:none;max-width:260px}
@@ -133,6 +179,12 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 /* Toast */
 #toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--text-dark);color:var(--cream);padding:9px 16px;border-radius:20px;font-size:13px;z-index:6000;opacity:0;transition:opacity 0.3s,transform 0.3s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Lightbox */
+#lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:8000;display:flex;align-items:center;justify-content:center}
+#lightbox.hidden{display:none}
+#lightbox img{max-width:95vw;max-height:90vh;object-fit:contain;border-radius:8px}
+#lightbox-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.15);border:none;color:white;font-size:22px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
 /* Leaflet overrides */
 .leaflet-popup-content-wrapper{padding:0!important;border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.25)!important;background:transparent!important;overflow:hidden}
@@ -170,7 +222,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
       </div>
     </div>
     <div class="tab-panel" id="panel-url">
-      <div style="font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.5">Paste a link to any campsite page — WikiCamps, Hipcamp, Parks Victoria, NP booking sites, Google Maps, etc.</div>
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.5">Paste a link to any campsite page — WikiCamps, Hipcamp, Parks Victoria, NP booking sites, Google Maps etc.</div>
       <div class="url-input-row">
         <input type="url" id="url-input" placeholder="https://..." autocomplete="off" autocorrect="off" autocapitalize="off">
         <button class="url-go-btn" id="url-submit">Add →</button>
@@ -180,6 +232,39 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
   </div>
 </div>
 
+<!-- Notes & Photos sheet -->
+<div id="notes-modal" class="hidden">
+  <div class="notes-sheet">
+    <div class="sheet-handle"></div>
+    <div class="notes-site-name" id="notes-site-name">Campsite</div>
+
+    <div class="stayed-toggle">
+      <button class="stayed-btn" id="stayed-yes-btn" onclick="setStayed(true)">✓ Been here</button>
+      <button class="stayed-btn" id="stayed-no-btn" onclick="setStayed(false)">♡ Wish list</button>
+    </div>
+
+    <label class="notes-label">Your notes</label>
+    <textarea class="notes-textarea" id="notes-textarea" placeholder="Tips, memories, things to bring…" rows="4"></textarea>
+
+    <label class="photos-label">Photos from your visit</label>
+    <div class="photo-strip" id="notes-photo-strip">
+      <div class="photo-add-btn" onclick="document.getElementById('note-photo-input').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20 7h-3.5L15 5H9L7.5 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+        Add photo
+      </div>
+    </div>
+
+    <button class="notes-save-btn" id="notes-save-btn">Save</button>
+    <button class="sheet-cancel" onclick="closeNotesModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="hidden">
+  <button id="lightbox-close" onclick="document.getElementById('lightbox').classList.add('hidden')">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
 <div id="header">
   <h1>Camp<span>Tracker</span></h1>
   <div id="people-bar"></div>
@@ -187,19 +272,18 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 
 <div id="map"></div>
 
-<!-- Feature filter bar -->
 <div id="filter-bar">
+  <button class="filter-btn" id="fbtn-stayed" onclick="toggleFilter('stayed')">✓ Been</button>
+  <button class="filter-btn" id="fbtn-notstayed" onclick="toggleFilter('notstayed')">♡ Wish</button>
+  <div class="filter-divider"></div>
   <button class="filter-btn" id="fbtn-swim" onclick="toggleFilter('swim')">
-    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>
-    Swim
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>Swim
   </button>
   <button class="filter-btn" id="fbtn-fire" onclick="toggleFilter('fire')">
-    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>
-    Fires
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>Fires
   </button>
   <button class="filter-btn" id="fbtn-pets" onclick="toggleFilter('pets')">
-    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>
-    Pets
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>Pets
   </button>
 </div>
 
@@ -216,16 +300,14 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
   </svg>
 </button>
 <input type="file" id="file-input" accept="image/*" multiple>
+<input type="file" id="note-photo-input" accept="image/*" multiple>
 
-<div id="loading-overlay">
-  <div class="spinner"></div>
-  <div id="loading-text">Reading campsite image…</div>
-</div>
+<div id="loading-overlay"><div class="spinner"></div><div id="loading-text">Searching…</div></div>
 <div id="toast"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, push, onChildAdded, onChildRemoved } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, push, update, onChildAdded, onChildChanged, onChildRemoved } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const GEMINI_URL = 'https://billowing-unit-bb41.mpg00a.workers.dev';
 const PERSON_KEY = 'camptracker_person_v4';
@@ -248,39 +330,50 @@ const sitesRef = ref(db, 'campsites');
 const map = L.map('map',{zoomControl:true,attributionControl:false}).setView([-25.2744,133.7751],4);
 L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd'}).addTo(map);
 
-let me = null, allSites = {}, allMarkers = {}, hiddenPeople = new Set(), knownPeople = {}, selectedColour = COLOURS[0];
-// activeFilters: which features must be present (empty = show all)
-let activeFilters = new Set();
+let me=null, allSites={}, allMarkers={}, hiddenPeople=new Set(), knownPeople={}, selectedColour=COLOURS[0];
+let activeFilters=new Set();
+// Notes modal state
+let notesSiteId=null, notesStayed=null, notesPendingPhotos=[];
 
-// ── SVG icon paths ──
-const ICONS = {
-  swim: `<svg viewBox="0 0 16 16" fill="white"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>`,
-  fire: `<svg viewBox="0 0 16 16" fill="white"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>`,
-  pets: `<svg viewBox="0 0 16 16" fill="white"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>`
+const ICONS={
+  swim:`<svg viewBox="0 0 16 16" fill="white"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>`,
+  fire:`<svg viewBox="0 0 16 16" fill="white"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>`,
+  pets:`<svg viewBox="0 0 16 16" fill="white"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>`,
+  tick:`<svg viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><polyline points="2,5 4,7 8,3"/></svg>`
 };
 
-// ── Utilities ──
+// ── Utils ──
 function hexAlpha(hex,a){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`}
 function showToast(msg,d=3500){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d)}
-function setLoading(active,text='Searching for campsite details…'){document.getElementById('loading-text').textContent=text;document.getElementById('loading-overlay').classList.toggle('active',active)}
+function setLoading(active,text='Searching…'){document.getElementById('loading-text').textContent=text;document.getElementById('loading-overlay').classList.toggle('active',active)}
 
-function siteVisible(site) {
-  if (hiddenPeople.has(site.addedBy)) return false;
-  const f = site.features || {};
-  for (const filter of activeFilters) {
-    if (!f[filter]) return false;
+function myStayed(site){
+  // Returns true/false/null for current user's stayed status
+  const ud=site.userData?.[sanitizeKey(me?.name||'')];
+  return ud?.stayed ?? null;
+}
+
+function siteVisible(site){
+  if(hiddenPeople.has(site.addedBy)) return false;
+  const f=site.features||{};
+  for(const filter of activeFilters){
+    if(filter==='stayed'){if(myStayed(site)!==true) return false}
+    else if(filter==='notstayed'){if(myStayed(site)!==false) return false}
+    else if(!f[filter]) return false;
   }
   return true;
 }
 function updateEmptyState(){
-  const vis = Object.keys(allSites).filter(id=>siteVisible(allSites[id])).length;
-  document.getElementById('empty-state').style.display = vis>0?'none':'block';
+  const vis=Object.keys(allSites).filter(id=>siteVisible(allSites[id])).length;
+  document.getElementById('empty-state').style.display=vis>0?'none':'block';
 }
 
+function sanitizeKey(name){return name.replace(/[.#$\/\[\]]/g,'_')}
+
 // ── Modal controls ──
-window.openAddModal  = ()=>document.getElementById('add-modal').classList.remove('hidden');
-window.closeAddModal = ()=>document.getElementById('add-modal').classList.add('hidden');
-window.switchTab = (tab)=>{
+window.openAddModal=()=>document.getElementById('add-modal').classList.remove('hidden');
+window.closeAddModal=()=>document.getElementById('add-modal').classList.add('hidden');
+window.switchTab=(tab)=>{
   document.querySelectorAll('.sheet-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
@@ -288,16 +381,104 @@ window.switchTab = (tab)=>{
 };
 document.getElementById('add-modal').addEventListener('click',e=>{if(e.target===document.getElementById('add-modal'))closeAddModal()});
 
-// ── Feature filters ──
-window.toggleFilter = (feat) => {
-  const btn = document.getElementById('fbtn-'+feat);
-  if (activeFilters.has(feat)) {
-    activeFilters.delete(feat);
-    btn.classList.remove('active-'+feat);
-  } else {
-    activeFilters.add(feat);
-    btn.classList.add('active-'+feat);
+// ── Notes modal ──
+window.closeNotesModal=()=>{
+  document.getElementById('notes-modal').classList.add('hidden');
+  notesSiteId=null; notesStayed=null; notesPendingPhotos=[];
+};
+document.getElementById('notes-modal').addEventListener('click',e=>{if(e.target===document.getElementById('notes-modal'))closeNotesModal()});
+
+function openNotesModal(id){
+  const site=allSites[id]; if(!site) return;
+  notesSiteId=id;
+  notesPendingPhotos=[];
+  const ud=site.userData?.[sanitizeKey(me?.name||'')]||{};
+  notesStayed=ud.stayed??null;
+  document.getElementById('notes-site-name').textContent=site.name;
+  document.getElementById('notes-textarea').value=ud.notes||'';
+  updateStayedBtns();
+  renderNotesPhotos(ud.photos||[]);
+  document.getElementById('notes-modal').classList.remove('hidden');
+}
+
+window.setStayed=(val)=>{notesStayed=val;updateStayedBtns()};
+function updateStayedBtns(){
+  document.getElementById('stayed-yes-btn').className='stayed-btn'+(notesStayed===true?' active-yes':'');
+  document.getElementById('stayed-no-btn').className='stayed-btn'+(notesStayed===false?' active-no':'');
+}
+
+function renderNotesPhotos(photos){
+  const strip=document.getElementById('notes-photo-strip');
+  strip.innerHTML='';
+  // Add photo button first
+  const addBtn=document.createElement('div');
+  addBtn.className='photo-add-btn';
+  addBtn.onclick=()=>document.getElementById('note-photo-input').click();
+  addBtn.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M20 7h-3.5L15 5H9L7.5 7H4a2 2 0 00-2 2v9a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>Add`;
+  strip.appendChild(addBtn);
+  // Saved photos
+  photos.forEach(src=>{
+    const img=document.createElement('img');
+    img.className='photo-thumb';
+    img.src=src;
+    img.onclick=()=>openLightbox(src);
+    strip.appendChild(img);
+  });
+  // Pending (newly added) photos
+  notesPendingPhotos.forEach(src=>{
+    const img=document.createElement('img');
+    img.className='photo-thumb';
+    img.src=src;
+    img.style.opacity='0.7';
+    img.onclick=()=>openLightbox(src);
+    strip.appendChild(img);
+  });
+}
+
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+document.getElementById('lightbox').addEventListener('click',e=>{
+  if(e.target===document.getElementById('lightbox')) document.getElementById('lightbox').classList.add('hidden');
+});
+
+// Photo input for notes
+document.getElementById('note-photo-input').addEventListener('change',async(e)=>{
+  const files=Array.from(e.target.files); e.target.value='';
+  for(const file of files){
+    const b64=await readFileAsBase64(file);
+    const resized=await resizeImageForPhoto(b64);
+    notesPendingPhotos.push(resized);
   }
+  const site=allSites[notesSiteId];
+  const ud=site?.userData?.[sanitizeKey(me?.name||'')]||{};
+  renderNotesPhotos(ud.photos||[]);
+});
+
+// Save notes
+document.getElementById('notes-save-btn').addEventListener('click',async()=>{
+  if(!notesSiteId||!me) return;
+  const site=allSites[notesSiteId];
+  const key=sanitizeKey(me.name);
+  const ud=site.userData?.[key]||{};
+  const existingPhotos=ud.photos||[];
+  const allPhotos=[...existingPhotos,...notesPendingPhotos];
+  const updates={};
+  updates[`campsites/${notesSiteId}/userData/${key}/stayed`]=notesStayed;
+  updates[`campsites/${notesSiteId}/userData/${key}/notes`]=document.getElementById('notes-textarea').value.trim();
+  updates[`campsites/${notesSiteId}/userData/${key}/photos`]=allPhotos;
+  updates[`campsites/${notesSiteId}/userData/${key}/updatedAt`]=new Date().toISOString();
+  await update(ref(db),updates);
+  showToast('✓ Saved!');
+  closeNotesModal();
+});
+
+// ── Filters ──
+window.toggleFilter=(feat)=>{
+  const btn=document.getElementById('fbtn-'+feat);
+  if(activeFilters.has(feat)){activeFilters.delete(feat);btn.className='filter-btn'}
+  else{activeFilters.add(feat);btn.classList.add('active-'+feat)}
   applyVisibility();
 };
 
@@ -326,68 +507,73 @@ function applyVisibility(){
 }
 function registerPerson(name,colour){if(name&&!knownPeople[name]){knownPeople[name]=colour||'#888';rebuildPeopleBar()}}
 
-// ── Marker icon with floating feature dots ──
-function createMarkerIcon(type, colour, features) {
-  const typeIcon = type==='hike'?'🥾':'🚐';
-  const f = features || {};
-
-  // Build floating icon dots above the pin
-  let dotsHTML = '';
-  if (f.swim) dotsHTML += `<div class="mfi mfi-swim">${ICONS.swim}</div>`;
-  if (f.fire) dotsHTML += `<div class="mfi mfi-fire">${ICONS.fire}</div>`;
-  if (f.pets) dotsHTML += `<div class="mfi mfi-pets">${ICONS.pets}</div>`;
-
-  const totalDots = (f.swim?1:0)+(f.fire?1:0)+(f.pets?1:0);
-  const wrapW = Math.max(36, totalDots*16+(totalDots-1)*2);
-
-  const html = `<div class="marker-wrap" style="width:${wrapW}px">
-    ${dotsHTML ? `<div class="marker-feature-icons">${dotsHTML}</div>` : ''}
+// ── Marker ──
+function createMarkerIcon(type,colour,features,stayed){
+  const typeIcon=type==='hike'?'🥾':'🚐';
+  const f=features||{};
+  let dotsHTML='';
+  if(f.swim) dotsHTML+=`<div class="mfi mfi-swim">${ICONS.swim}</div>`;
+  if(f.fire) dotsHTML+=`<div class="mfi mfi-fire">${ICONS.fire}</div>`;
+  if(f.pets) dotsHTML+=`<div class="mfi mfi-pets">${ICONS.pets}</div>`;
+  const totalDots=(f.swim?1:0)+(f.fire?1:0)+(f.pets?1:0);
+  const wrapW=Math.max(36,totalDots*16+(totalDots>0?totalDots-1:0)*2);
+  const tickHTML=stayed===true?`<div class="marker-stayed-tick">${ICONS.tick}</div>`:'';
+  const html=`<div class="marker-wrap" style="width:${wrapW}px;position:relative">
+    ${dotsHTML?`<div class="marker-feature-icons">${dotsHTML}</div>`:''}
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44" style="display:block;margin:0 auto">
       <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26S36 31.5 36 18C36 8.06 27.94 0 18 0z" fill="${colour}" stroke="white" stroke-width="1.5"/>
       <text x="18" y="23" text-anchor="middle" font-size="14">${typeIcon}</text>
     </svg>
+    ${tickHTML}
   </div>`;
-
-  return L.divIcon({
-    html,
-    className:'',
-    iconSize:[wrapW, 62],
-    iconAnchor:[wrapW/2, 62],
-    popupAnchor:[0, -62]
-  });
+  return L.divIcon({html,className:'',iconSize:[wrapW,62],iconAnchor:[wrapW/2,62],popupAnchor:[0,-62]});
 }
 
-// ── Popup HTML ──
-function featBadge(label, cls, icon, yes) {
-  if (yes === null || yes === undefined) return '';
-  return yes
-    ? `<span class="feat-badge ${cls}">${icon} ${label}</span>`
-    : `<span class="feat-badge feat-no">No ${label}</span>`;
+// ── Popup ──
+function featBadge(label,cls,icon,yes){
+  if(yes===null||yes===undefined) return '';
+  return yes?`<span class="feat-badge ${cls}">${icon} ${label}</span>`:`<span class="feat-badge feat-no">No ${label}</span>`;
 }
 
-function buildPopupHTML(site){
+const FEAT_SVG={
+  swim:'<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>',
+  fire:'<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>',
+  pets:'<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>'
+};
+
+function buildPopupHTML(id,site){
   const typeLabel=site.type==='hike'?'🥾 Hike-in only':'🚐 Caravan accessible';
   const badgeClass=site.type==='hike'?'badge-hike':'badge-caravan';
   const date=site.addedAt?new Date(site.addedAt).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'}):'';
   const d=site.details||{};
   const f=site.features||{};
+  const stayed=myStayed(site);
+  const stayedHTML=stayed===true?'<span class="popup-stayed-badge badge-stayed">✓ Been here</span>':stayed===false?'<span class="popup-stayed-badge badge-wishlist">♡ Wish list</span>':'';
   const rows=[
-    ['Region',d.region||d.state],
-    ['Facilities',d.facilities],
-    ['Access',d.access],
-    ['Cost',d.cost],
-    ['Water',d.water],
-    ['Notes',d.notes],
+    ['Region',d.region||d.state],['Facilities',d.facilities],
+    ['Access',d.access],['Cost',d.cost],['Water',d.water],['Notes',d.notes],
   ].filter(([,v])=>v&&v!=='null'&&v!=='unknown'&&v!=='Unknown');
   const rowsHTML=rows.map(([l,v])=>`<div class="popup-detail-row"><span class="detail-label">${l}</span><span class="detail-value">${v}</span></div>`).join('');
   const imgHTML=site.imageData?`<img class="popup-img" src="${site.imageData}" alt="">`:'';
   const colour=knownPeople[site.addedBy]||'#888';
   const srcHTML=site.sourceUrl?`<a class="popup-source-link" href="${site.sourceUrl}" target="_blank">Source ↗</a>`:'';
 
-  const featuresHTML = `<div class="popup-features">
-    ${f.swim !== undefined ? featBadge('Swimming', 'feat-swim', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>', f.swim) : ''}
-    ${f.fire !== undefined ? featBadge('Fires', 'feat-fire', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1s-4 3-4 7a4 4 0 008 0c0-4-4-7-4-7zm0 10a2 2 0 01-2-2c0-2 2-4.5 2-4.5s2 2.5 2 4.5a2 2 0 01-2 2z"/></svg>', f.fire) : ''}
-    ${f.pets !== undefined ? featBadge('Pets', 'feat-pets', '<svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 4a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm7 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM3 6.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm10 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM8 7c-2 0-4 1.5-4 3.5 0 1.5 1 2.5 2 3l.5.5h3l.5-.5c1-.5 2-1.5 2-3C12 8.5 10 7 8 7z"/></svg>', f.pets) : ''}
+  // User notes & photos
+  const myUd=site.userData?.[sanitizeKey(me?.name||'')]||{};
+  const notesHTML=myUd.notes?`<div class="popup-user-notes">${myUd.notes}</div>`:'';
+  const myPhotos=myUd.photos||[];
+  const photosHTML=myPhotos.length?`<div class="popup-user-photos">${myPhotos.map(src=>`<img src="${src}" onclick="document.getElementById('lightbox-img').src='${src}';document.getElementById('lightbox').classList.remove('hidden')">`).join('')}</div>`:'';
+
+  // All users notes summary
+  const allUsersNotes=Object.entries(site.userData||{}).filter(([k])=>k!==sanitizeKey(me?.name||'')).map(([k,ud])=>{
+    const uname=Object.keys(knownPeople).find(n=>sanitizeKey(n)===k)||k;
+    return ud.notes?`<div class="popup-detail-row"><span class="detail-label">${uname}</span><span class="detail-value" style="font-style:italic">${ud.notes}</span></div>`:'';
+  }).filter(Boolean).join('');
+
+  const featuresHTML=`<div class="popup-features">
+    ${f.swim!==undefined?featBadge('Swim','feat-swim',FEAT_SVG.swim,f.swim):''}
+    ${f.fire!==undefined?featBadge('Fires','feat-fire',FEAT_SVG.fire,f.fire):''}
+    ${f.pets!==undefined?featBadge('Pets','feat-pets',FEAT_SVG.pets,f.pets):''}
   </div>`;
 
   return `<div class="camp-popup">${imgHTML}
@@ -395,20 +581,44 @@ function buildPopupHTML(site){
       <div class="popup-badges">
         <span class="popup-by" style="background:${colour}">${site.addedBy||'?'}</span>
         <span class="popup-type-badge ${badgeClass}">${typeLabel}</span>
+        ${stayedHTML}
       </div>
       <div class="popup-name">${site.name}</div>
       ${featuresHTML}
     </div>
-    <div class="popup-body">${rowsHTML||'<div style="color:var(--text-light);font-size:12px;padding:4px 0">No details found</div>'}</div>
-    <div class="popup-footer"><span>${date} · ${Number(site.lat).toFixed(4)}, ${Number(site.lng).toFixed(4)}</span>${srcHTML}</div>
+    <div class="popup-body">${rowsHTML||'<div style="color:var(--text-light);font-size:12px;padding:4px 0">No details found</div>'}${allUsersNotes?`<div style="border-top:0.5px solid #EDE5D0;margin-top:4px;padding-top:4px">${allUsersNotes}</div>`:''}</div>
+    ${notesHTML}${photosHTML}
+    <div class="popup-footer">
+      <span>${date} · ${Number(site.lat).toFixed(4)}, ${Number(site.lng).toFixed(4)}</span>
+      <div style="display:flex;gap:6px;align-items:center">
+        ${srcHTML}
+        <button class="popup-notes-btn" onclick="openNotesModal_('${id}')">✎ Notes</button>
+      </div>
+    </div>
   </div>`;
 }
 
-function addSiteToMap(id, site){
-  registerPerson(site.addedBy, site.addedByColour);
-  const colour = knownPeople[site.addedBy]||'#888';
-  const marker = L.marker([site.lat,site.lng],{icon:createMarkerIcon(site.type,colour,site.features)});
-  marker.bindPopup(buildPopupHTML(site),{maxWidth:310,minWidth:290});
+// Expose openNotesModal to inline onclick
+window.openNotesModal_=(id)=>{
+  map.closePopup();
+  setTimeout(()=>openNotesModal(id),100);
+};
+
+function refreshMarker(id,site){
+  const stayed=myStayed(site);
+  const colour=knownPeople[site.addedBy]||'#888';
+  if(allMarkers[id]){
+    allMarkers[id].setIcon(createMarkerIcon(site.type,colour,site.features,stayed));
+    allMarkers[id].setPopupContent(buildPopupHTML(id,site));
+  }
+}
+
+function addSiteToMap(id,site){
+  registerPerson(site.addedBy,site.addedByColour);
+  const colour=knownPeople[site.addedBy]||'#888';
+  const stayed=myStayed(site);
+  const marker=L.marker([site.lat,site.lng],{icon:createMarkerIcon(site.type,colour,site.features,stayed)});
+  marker.bindPopup(buildPopupHTML(id,site),{maxWidth:310,minWidth:290});
   if(siteVisible(site)) marker.addTo(map);
   allMarkers[id]=marker;
   updateEmptyState();
@@ -420,6 +630,13 @@ onChildAdded(sitesRef,snap=>{
   if(!site?.lat||!site?.lng) return;
   allSites[id]=site; addSiteToMap(id,site);
 });
+onChildChanged(sitesRef,snap=>{
+  const id=snap.key,site=snap.val();
+  if(!site?.lat||!site?.lng) return;
+  allSites[id]=site;
+  refreshMarker(id,site);
+  applyVisibility();
+});
 onChildRemoved(sitesRef,snap=>{
   const id=snap.key;
   if(allMarkers[id]){map.removeLayer(allMarkers[id]);delete allMarkers[id]}
@@ -427,274 +644,174 @@ onChildRemoved(sitesRef,snap=>{
 });
 
 // ── Gemini ──
-const FEATURE_JSON = `"features": {
-    "swim": <true if there is a natural swimming spot nearby (river, lake, waterhole, creek, beach, billabong) — false if landlocked/no water nearby — MUST be true or false>,
-    "fire": <true if campfires or fire pits are permitted — false if fires prohibited — MUST be true or false>,
-    "pets": <true if pets/dogs are allowed — false if no pets permitted — MUST be true or false>
-  }`;
+const FEATURE_JSON=`"features":{"swim":<true/false>,"fire":<true/false>,"pets":<true/false>}`;
 
-function buildSearchPrompt(name) {
-  return `Search the web for detailed information about the Australian campsite: "${name}"
-
+function buildSearchPrompt(name){
+  return `Search the web for Australian campsite: "${name}"
 Return ONLY raw JSON, no markdown:
-{
-  "name": "Official campsite name",
-  "lat": <decimal latitude>,
-  "lng": <decimal longitude>,
-  "type": "<hike or caravan>",
-  ${FEATURE_JSON},
-  "details": {
-    "region": "State and region e.g. Grampians, Victoria",
-    "facilities": "Full list e.g. flush toilets, showers, BBQ, powered sites",
-    "access": "Road access e.g. sealed road / 4WD required / walk-in 3km",
-    "cost": "Cost per night e.g. $15/night or Free",
-    "water": "Water availability",
-    "notes": "Bookings, fire restrictions, dog notes, max stay, nearby attractions"
-  }
+{"name":"Official name","lat":<decimal>,"lng":<decimal>,"type":"hike or caravan",${FEATURE_JSON},"details":{"region":"State/region","facilities":"List","access":"Road type","cost":"$/night","water":"Availability","notes":"Tips"}}
+swim=true if natural swimming nearby. fire=true if campfires allowed. pets=true if dogs allowed.
+type=caravan if driveable. type=hike if walk-in/4WD only.
+Lat -10 to -44, lng 113 to 154. Max 25 words per string. Only JSON.`;
 }
-type=caravan if caravans can access on normal roads. type=hike if walk-in/4WD/boat only.
-Australian lat: -10 to -44, lng: 113 to 154. Keep every string value under 25 words. Only return JSON.`;
-}
-
-function buildUrlPrompt(url) {
-  return `Look up this campsite URL and search the web for information: ${url}
-
+function buildUrlPrompt(url){
+  return `Look up campsite at: ${url} and search web for details.
 Return ONLY raw JSON, no markdown:
-{
-  "name": "Official campsite name",
-  "lat": <decimal latitude>,
-  "lng": <decimal longitude>,
-  "type": "<hike or caravan>",
-  ${FEATURE_JSON},
-  "sourceUrl": "${url}",
-  "details": {
-    "region": "State and region",
-    "facilities": "All facilities",
-    "access": "How to get there",
-    "cost": "Cost per night",
-    "water": "Water availability",
-    "notes": "Bookings, restrictions, tips"
-  }
-}
-type=caravan if driveable by caravan. type=hike if walk-in/4WD/boat only.
-Australian coordinates only. Keep every string value under 25 words. Only return JSON.`;
+{"name":"Official name","lat":<decimal>,"lng":<decimal>,"type":"hike or caravan","sourceUrl":"${url}",${FEATURE_JSON},"details":{"region":"State/region","facilities":"List","access":"Road type","cost":"$/night","water":"Availability","notes":"Tips"}}
+swim=true if natural swimming nearby. fire=true if campfires allowed. pets=true if dogs allowed.
+type=caravan if driveable. type=hike if walk-in/4WD only.
+Australian coords only. Max 25 words per string. Only JSON.`;
 }
 
-function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_,reject) => setTimeout(()=>reject(new Error(`Timed out after ${ms/1000}s (${label})`)), ms))
-  ]);
-}
+function withTimeout(p,ms,label){return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error(`Timed out (${label})`)),ms))])}
 
-function resizeImageIfNeeded(base64) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => {
-      const MAX = 1024;
-      if (img.width <= MAX && img.height <= MAX) { resolve(base64); return; }
-      const scale = MAX / Math.max(img.width, img.height);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.85));
+function resizeImageIfNeeded(base64){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1024;
+      if(img.width<=MAX&&img.height<=MAX){resolve(base64);return}
+      const scale=MAX/Math.max(img.width,img.height);
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.85));
     };
-    img.onerror = () => resolve(base64);
-    img.src = base64;
+    img.onerror=()=>resolve(base64);
+    img.src=base64;
   });
 }
 
-let debugHideTimer = null;
-let debugPinned = false;
+function resizeImageForPhoto(base64){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=800;
+      if(img.width<=MAX&&img.height<=MAX){resolve(base64);return}
+      const scale=MAX/Math.max(img.width,img.height);
+      const c=document.createElement('canvas');
+      c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.75));
+    };
+    img.onerror=()=>resolve(base64);
+    img.src=base64;
+  });
+}
 
-function showDebug(label, content) {
-  // Create persistent toggle button if it doesn't exist
-  if (!document.getElementById('debug-toggle')) {
-    const btn = document.createElement('button');
-    btn.id = 'debug-toggle';
-    btn.textContent = '🐛';
-    btn.title = 'Show debug log';
-    btn.style.cssText = 'position:fixed;bottom:90px;left:14px;width:28px;height:28px;border-radius:50%;background:#111;color:#00ff88;border:1px solid #00ff88;font-size:13px;cursor:pointer;z-index:9998;display:none;padding:0;line-height:1';
-    btn.onclick = () => { debugPinned = true; showPanel(); };
+// Debug panel
+let debugHideTimer=null,debugPinned=false;
+function showDebug(label,content){
+  if(!document.getElementById('debug-toggle')){
+    const btn=document.createElement('button');
+    btn.id='debug-toggle';btn.textContent='🐛';
+    btn.style.cssText='position:fixed;bottom:90px;left:14px;width:28px;height:28px;border-radius:50%;background:#111;color:#00ff88;border:1px solid #00ff88;font-size:13px;cursor:pointer;z-index:9998;display:none;padding:0;line-height:1';
+    btn.onclick=()=>{debugPinned=true;showPanel()};
     document.body.appendChild(btn);
   }
-
-  let panel = document.getElementById('debug-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'debug-panel';
-    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:55vh;overflow-y:auto;background:#111;color:#00ff88;font-family:monospace;font-size:11px;padding:10px 12px;z-index:9999;border-top:2px solid #00ff88;transition:transform 0.3s ease';
-    const hdr = document.createElement('div');
-    hdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;position:sticky;top:0;background:#111;padding-bottom:4px;border-bottom:1px solid #333';
-    hdr.innerHTML = '<span style="color:#ffaa00;font-weight:bold">🐛 DEBUG</span>';
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '✕ close';
-    closeBtn.style.cssText = 'background:#333;color:white;border:none;padding:3px 8px;cursor:pointer;border-radius:4px;font-size:11px';
-    closeBtn.onclick = () => { debugPinned = false; hidePanel(); };
-    hdr.appendChild(closeBtn);
-    panel.appendChild(hdr);
-    // Keep visible while hovering
-    panel.addEventListener('mouseenter', () => { debugPinned = true; clearTimeout(debugHideTimer); });
-    panel.addEventListener('mouseleave', () => { debugPinned = false; scheduleHide(); });
-    panel.addEventListener('touchstart', () => { debugPinned = true; clearTimeout(debugHideTimer); }, {passive:true});
+  let panel=document.getElementById('debug-panel');
+  if(!panel){
+    panel=document.createElement('div');panel.id='debug-panel';
+    panel.style.cssText='position:fixed;bottom:0;left:0;right:0;max-height:55vh;overflow-y:auto;background:#111;color:#00ff88;font-family:monospace;font-size:11px;padding:10px 12px;z-index:9999;border-top:2px solid #00ff88;transition:transform 0.3s ease';
+    const hdr=document.createElement('div');
+    hdr.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;position:sticky;top:0;background:#111;padding-bottom:4px;border-bottom:1px solid #333';
+    hdr.innerHTML='<span style="color:#ffaa00;font-weight:bold">🐛 DEBUG</span>';
+    const cb=document.createElement('button');cb.textContent='✕ close';
+    cb.style.cssText='background:#333;color:white;border:none;padding:3px 8px;cursor:pointer;border-radius:4px;font-size:11px';
+    cb.onclick=()=>{debugPinned=false;hidePanel()};
+    hdr.appendChild(cb);panel.appendChild(hdr);
+    panel.addEventListener('mouseenter',()=>{debugPinned=true;clearTimeout(debugHideTimer)});
+    panel.addEventListener('mouseleave',()=>{debugPinned=false;scheduleHide()});
+    panel.addEventListener('touchstart',()=>{debugPinned=true;clearTimeout(debugHideTimer)},{passive:true});
     document.body.appendChild(panel);
   }
-
-  const entry = document.createElement('div');
-  entry.style.cssText = 'margin-top:8px;border-top:1px solid #222;padding-top:6px';
-  entry.innerHTML = `<div style="color:#ffaa00;margin-bottom:3px">▶ ${label}</div><pre style="white-space:pre-wrap;word-break:break-all;color:#ccc;margin:0">${String(content).replace(/</g,'&lt;')}</pre>`;
-  panel.appendChild(entry);
-  panel.scrollTop = panel.scrollHeight;
-
-  showPanel();
-  scheduleHide();
+  const entry=document.createElement('div');
+  entry.style.cssText='margin-top:8px;border-top:1px solid #222;padding-top:6px';
+  entry.innerHTML=`<div style="color:#ffaa00;margin-bottom:3px">▶ ${label}</div><pre style="white-space:pre-wrap;word-break:break-all;color:#ccc;margin:0">${String(content).replace(/</g,'&lt;')}</pre>`;
+  panel.appendChild(entry);panel.scrollTop=panel.scrollHeight;
+  showPanel();scheduleHide();
 }
+function showPanel(){const p=document.getElementById('debug-panel');if(p)p.style.transform='translateY(0)';const b=document.getElementById('debug-toggle');if(b)b.style.display='block'}
+function hidePanel(){const p=document.getElementById('debug-panel');if(p)p.style.transform='translateY(100%)'}
+function scheduleHide(){clearTimeout(debugHideTimer);if(!debugPinned)debugHideTimer=setTimeout(()=>{if(!debugPinned)hidePanel()},3000)}
 
-function showPanel() {
-  const panel = document.getElementById('debug-panel');
-  if (panel) panel.style.transform = 'translateY(0)';
-  const btn = document.getElementById('debug-toggle');
-  if (btn) btn.style.display = 'block';
-}
-
-function hidePanel() {
-  const panel = document.getElementById('debug-panel');
-  if (panel) panel.style.transform = 'translateY(100%)';
-}
-
-function scheduleHide() {
-  clearTimeout(debugHideTimer);
-  if (!debugPinned) {
-    debugHideTimer = setTimeout(() => { if (!debugPinned) hidePanel(); }, 3000);
-  }
-}
-
-async function callGemini(body) {
-  const res = await withTimeout(
-    fetch(GEMINI_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}),
-    25000, 'API call'
-  );
-  const data = await res.json();
-  if (!res.ok) {
-    const msg = data.error?.message || `Gemini HTTP ${res.status}`;
-    showDebug(`API ERROR (HTTP ${res.status})`, JSON.stringify(data.error || data, null, 2));
-    throw new Error(msg);
-  }
-  const finishReason = data.candidates?.[0]?.finishReason;
-  const text = data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || '';
-  showDebug(`RAW RESPONSE (finishReason: ${finishReason})`, text || '(empty — no text parts)');
-  if (!text) {
-    showDebug('FULL RESPONSE OBJECT', JSON.stringify(data, null, 2));
-    throw new Error(`Empty response from Gemini (finishReason: ${finishReason})`);
-  }
+async function callGemini(body){
+  const res=await withTimeout(fetch(GEMINI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),25000,'API');
+  const data=await res.json();
+  if(!res.ok){const msg=data.error?.message||`Gemini HTTP ${res.status}`;showDebug(`API ERROR`,JSON.stringify(data.error||data,null,2));throw new Error(msg)}
+  const finishReason=data.candidates?.[0]?.finishReason;
+  const text=data.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
+  showDebug(`RAW (${finishReason})`,text||'(empty)');
+  if(!text){showDebug('FULL',JSON.stringify(data,null,2));throw new Error(`Empty response (${finishReason})`)}
   return text;
 }
 
-function extractJSON(text) {
-  // Strip markdown code fences first
-  const stripped = text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
-  const start = stripped.indexOf('{');
-  const end = stripped.lastIndexOf('}');
-  if (start === -1 || end <= start) {
-    showDebug('extractJSON FAILED — no braces found in', stripped.slice(0, 300));
-    throw new Error(`No JSON found in response`);
-  }
-  const candidate = stripped.slice(start, end + 1);
-  try {
-    return JSON.parse(candidate);
-  } catch(e) {
-    showDebug('extractJSON PARSE ERROR', `Error: ${e.message}\n\nCandidate:\n${candidate.slice(0, 500)}`);
-    throw new Error(`JSON parse failed: ${e.message}`);
-  }
+function extractJSON(text){
+  const stripped=text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+  const start=stripped.indexOf('{'),end=stripped.lastIndexOf('}');
+  if(start===-1||end<=start){showDebug('NO JSON FOUND',stripped.slice(0,300));throw new Error('No JSON in response')}
+  const candidate=stripped.slice(start,end+1);
+  try{return JSON.parse(candidate)}
+  catch(e){showDebug('PARSE ERROR',`${e.message}\n\n${candidate.slice(0,500)}`);throw new Error(`JSON parse failed: ${e.message}`)}
 }
 
-async function callGeminiWithSearch(prompt) {
-  const text = await callGemini({
-    contents:[{parts:[{text:prompt}]}],
-    tools:[{google_search:{}}],
-    generationConfig:{temperature:0.1, maxOutputTokens:4096}
-  });
+async function callGeminiWithSearch(prompt){
+  const text=await callGemini({contents:[{parts:[{text:prompt}]}],tools:[{google_search:{}}],generationConfig:{temperature:0.1,maxOutputTokens:4096}});
   return extractJSON(text);
 }
 
-async function readFileAsBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Could not read file'));
-    reader.onload = e => resolve(e.target.result);
+async function readFileAsBase64(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Could not read file'));
+    reader.onload=e=>resolve(e.target.result);
     reader.readAsDataURL(file);
   });
 }
 
-async function analyseImageThenSearch(file) {
-  // Step 1: read file
-  setLoading(true, 'Reading image…');
-  let fullBase64 = await readFileAsBase64(file);
-
-  // Step 2: resize if large
-  setLoading(true, 'Preparing image…');
-  fullBase64 = await resizeImageIfNeeded(fullBase64);
-  const base64Data = fullBase64.split(',')[1];
-  const mimeType = 'image/jpeg';
-
-  // Step 3: read campsite name from image
-  setLoading(true, 'Reading campsite name from image…');
-  const readPrompt = `Look at this campsite screenshot. Read all visible text.
-What is the NAME of the campsite? (the heading or title, e.g. "Bells Beach Campground")
-What STATE or REGION is shown if any?
-Reply ONLY with this JSON (no markdown, no extra text):
-{"name":"campsite name here","region":"state or null"}`;
-
-  const t1 = await callGemini({
-    contents:[{parts:[
-      {inline_data:{mime_type:mimeType, data:base64Data}},
-      {text:readPrompt}
-    ]}],
-    generationConfig:{temperature:0, maxOutputTokens:200}
-  });
-
+async function analyseImageThenSearch(file){
+  setLoading(true,'Reading image…');
+  let fullBase64=await readFileAsBase64(file);
+  setLoading(true,'Preparing image…');
+  fullBase64=await resizeImageIfNeeded(fullBase64);
+  const base64Data=fullBase64.split(',')[1];
+  setLoading(true,'Reading campsite name from image…');
+  const readPrompt=`Look at this campsite screenshot. Read all visible text.
+What is the NAME of the campsite? (heading/title e.g. "Bells Beach Campground")
+What STATE or REGION is shown?
+Reply ONLY with JSON (no markdown): {"name":"campsite name","region":"state or null"}`;
+  const t1=await callGemini({contents:[{parts:[{inline_data:{mime_type:'image/jpeg',data:base64Data}},{text:readPrompt}]}],generationConfig:{temperature:0,maxOutputTokens:200}});
   let nameResult;
-  try {
-    nameResult = extractJSON(t1);
-  } catch(e) {
-    throw new Error(`Could not read campsite name from image. Gemini said: ${t1.slice(0,100)}`);
-  }
-  if (!nameResult?.name) throw new Error('No campsite name found in image — make sure the name is clearly visible');
-
-  // Step 4: web search for full details
-  const searchName = nameResult.region
-    ? `${nameResult.name} ${nameResult.region} Australia campsite`
-    : `${nameResult.name} Australia campsite`;
-  setLoading(true, `Found "${nameResult.name}" — searching web…`);
-  const parsed = await callGeminiWithSearch(buildSearchPrompt(searchName));
-  return { parsed, imageData: fullBase64 };
+  try{nameResult=extractJSON(t1)}catch(e){throw new Error(`Could not read name. Gemini said: ${t1.slice(0,100)}`)}
+  if(!nameResult?.name) throw new Error('No campsite name found — make sure the name is visible');
+  const searchName=nameResult.region?`${nameResult.name} ${nameResult.region} Australia campsite`:`${nameResult.name} Australia campsite`;
+  setLoading(true,`Found "${nameResult.name}" — searching web…`);
+  const parsed=await callGeminiWithSearch(buildSearchPrompt(searchName));
+  return{parsed,imageData:fullBase64};
 }
 
 async function analyseUrl(url){
   setLoading(true,'Looking up campsite from link…');
-  const parsed=await withTimeout(callGeminiWithSearch(buildUrlPrompt(url)), 30000, 'URL lookup');
+  const parsed=await withTimeout(callGeminiWithSearch(buildUrlPrompt(url)),30000,'URL lookup');
   parsed.sourceUrl=url;
-  return {parsed,imageData:null};
+  return{parsed,imageData:null};
 }
 
-async function saveSite(parsed, imageData, sourceUrl){
+async function saveSite(parsed,imageData,sourceUrl){
   if(!parsed.lat||!parsed.lng) throw new Error('No coordinates found');
   const site={
     name:parsed.name||'Unknown Campsite',
-    lat:parseFloat(parsed.lat),
-    lng:parseFloat(parsed.lng),
+    lat:parseFloat(parsed.lat),lng:parseFloat(parsed.lng),
     type:parsed.type==='caravan'?'caravan':'hike',
     features:{
-      swim: parsed.features?.swim===true || parsed.features?.swim===false ? parsed.features.swim : null,
-      fire: parsed.features?.fire===true || parsed.features?.fire===false ? parsed.features.fire : null,
-      pets: parsed.features?.pets===true || parsed.features?.pets===false ? parsed.features.pets : null,
+      swim:parsed.features?.swim===true||parsed.features?.swim===false?parsed.features.swim:null,
+      fire:parsed.features?.fire===true||parsed.features?.fire===false?parsed.features.fire:null,
+      pets:parsed.features?.pets===true||parsed.features?.pets===false?parsed.features.pets:null,
     },
     details:parsed.details||{},
     imageData:imageData||null,
     sourceUrl:sourceUrl||parsed.sourceUrl||null,
-    addedBy:me.name,
-    addedByColour:me.colour,
+    addedBy:me.name,addedByColour:me.colour,
     addedAt:new Date().toISOString()
   };
   knownPeople[me.name]=me.colour;
@@ -705,50 +822,31 @@ async function saveSite(parsed, imageData, sourceUrl){
 // ── File input ──
 document.getElementById('file-input').addEventListener('change',async(e)=>{
   if(!me){showToast('Please enter your name first');return}
-  const files=Array.from(e.target.files);
-  if(!files.length) return;
-  e.target.value='';
-  closeAddModal();
+  const files=Array.from(e.target.files);if(!files.length) return;
+  e.target.value='';closeAddModal();
   let added=0,failed=0;
-  for(let i=0;i<files.length;i++){
-    try{
-      const{parsed,imageData}=await analyseImageThenSearch(files[i]);
-      await saveSite(parsed,imageData,null);
-      added++;
-    }catch(err){
-      console.error('Image failed:',err);
-      setLoading(false);
-      showToast(`⚠️ ${err.message}`, 5000);
-      failed++;
-    }
+  for(const file of files){
+    try{const{parsed,imageData}=await analyseImageThenSearch(file);await saveSite(parsed,imageData,null);added++}
+    catch(err){console.error(err);setLoading(false);showToast(`⚠️ ${err.message}`,5000);failed++}
   }
   setLoading(false);
-  if(added>0){
-    showToast(`⛺ ${added} campsite${added>1?'s':''} added!`);
-    const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);
-    if(ll.length) map.fitBounds(L.latLngBounds(ll).pad(0.3));
-  }
+  if(added>0){showToast(`⛺ ${added} campsite${added>1?'s':''} added!`);const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);if(ll.length)map.fitBounds(L.latLngBounds(ll).pad(0.3))}
 });
 
 // ── URL submit ──
 document.getElementById('url-submit').addEventListener('click',async()=>{
   if(!me){showToast('Please enter your name first');return}
   const url=document.getElementById('url-input').value.trim();
-  if(!url||!url.startsWith('http')){showToast('Please paste a valid URL starting with http');return}
+  if(!url||!url.startsWith('http')){showToast('Please paste a valid URL');return}
   closeAddModal();
   try{
     const{parsed,imageData}=await analyseUrl(url);
     await saveSite(parsed,imageData,url);
-    setLoading(false);
-    showToast(`⛺ ${parsed.name} added!`);
+    setLoading(false);showToast(`⛺ ${parsed.name} added!`);
     const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);
-    if(ll.length) map.fitBounds(L.latLngBounds(ll).pad(0.3));
+    if(ll.length)map.fitBounds(L.latLngBounds(ll).pad(0.3));
     document.getElementById('url-input').value='';
-  }catch(err){
-    setLoading(false);
-    console.error('URL failed:',err);
-    showToast(`⚠️ ${err.message}`, 5000);
-  }
+  }catch(err){setLoading(false);showToast(`⚠️ ${err.message}`,5000)}
 });
 document.getElementById('url-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('url-submit').click()});
 
@@ -756,8 +854,7 @@ document.getElementById('url-input').addEventListener('keydown',e=>{if(e.key==='
 const picker=document.getElementById('colour-picker');
 COLOURS.forEach((c,i)=>{
   const sw=document.createElement('div');
-  sw.className='colour-swatch'+(i===0?' selected':'');
-  sw.style.background=c;
+  sw.className='colour-swatch'+(i===0?' selected':'');sw.style.background=c;
   sw.onclick=()=>{document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));sw.classList.add('selected');selectedColour=c};
   picker.appendChild(sw);
 });
@@ -769,8 +866,7 @@ document.getElementById('name-submit').onclick=()=>{
   me={name,colour:selectedColour};
   localStorage.setItem(PERSON_KEY,JSON.stringify(me));
   document.getElementById('name-modal').classList.add('hidden');
-  knownPeople[me.name]=me.colour;
-  rebuildPeopleBar();
+  knownPeople[me.name]=me.colour;rebuildPeopleBar();
 };
 document.getElementById('name-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('name-submit').click()});
 
@@ -780,8 +876,7 @@ try{
   if(saved?.name){
     me=saved;
     document.getElementById('name-modal').classList.add('hidden');
-    knownPeople[me.name]=me.colour;
-    rebuildPeopleBar();
+    knownPeople[me.name]=me.colour;rebuildPeopleBar();
     COLOURS.forEach((c,i)=>{document.querySelectorAll('.colour-swatch')[i].classList.toggle('selected',c===me.colour)});
     selectedColour=me.colour;
   }
