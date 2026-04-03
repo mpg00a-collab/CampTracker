@@ -49,6 +49,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 .filter-btn.active-pets{background:rgba(122,74,184,0.3);border-color:rgba(122,74,184,0.7);color:#CFA8FF}
 .filter-btn.active-stayed{background:rgba(45,122,74,0.35);border-color:rgba(45,122,74,0.8);color:#A8F0C0}
 .filter-btn.active-notstayed{background:rgba(180,140,0,0.25);border-color:rgba(180,140,0,0.7);color:#FFE090}
+.filter-btn.active-caravan{background:rgba(196,130,26,0.3);border-color:rgba(196,130,26,0.7);color:#FFD080}
+.filter-btn.active-hike{background:rgba(45,122,74,0.3);border-color:rgba(45,122,74,0.7);color:#A0E8B8}
 .filter-divider{width:1px;background:rgba(255,255,255,0.15);margin:3px 2px}
 
 /* FAB */
@@ -162,8 +164,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
 /* Marker */
 .marker-wrap{position:relative}
 .marker-feature-icons{position:absolute;top:-18px;left:50%;transform:translateX(-50%);display:flex;gap:2px;pointer-events:none}
-.mfi{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid white;flex-shrink:0}
-.mfi svg{width:8px;height:8px}
+.mfi{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;flex-shrink:0}
+.mfi svg{width:11px;height:11px}
 .mfi-swim{background:var(--swim)}
 .mfi-fire{background:var(--fire)}
 .mfi-pets{background:var(--pets)}
@@ -213,7 +215,8 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
     <div class="sheet-title">Add a Campsite</div>
     <div class="sheet-tabs">
       <div class="sheet-tab active" id="tab-img" onclick="switchTab('img')">📷 Screenshot</div>
-      <div class="sheet-tab" id="tab-url" onclick="switchTab('url')">🔗 Paste Link</div>
+      <div class="sheet-tab" id="tab-url" onclick="switchTab('url')">🔗 Link</div>
+      <div class="sheet-tab" id="tab-name" onclick="switchTab('name')">🔍 Search</div>
     </div>
     <div class="tab-panel active" id="panel-img">
       <div class="img-upload-area" onclick="document.getElementById('file-input').click()">
@@ -226,6 +229,13 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
       <div class="url-input-row">
         <input type="url" id="url-input" placeholder="https://..." autocomplete="off" autocorrect="off" autocapitalize="off">
         <button class="url-go-btn" id="url-submit">Add →</button>
+      </div>
+    </div>
+    <div class="tab-panel" id="panel-name">
+      <div style="font-size:13px;color:var(--text-mid);margin-bottom:10px;line-height:1.5">Type the campsite name and we'll search the web for all the details.</div>
+      <div class="url-input-row">
+        <input type="text" id="name-search-input" placeholder="e.g. Kylies Beach Campground NSW" autocomplete="off" autocorrect="off">
+        <button class="url-go-btn" id="name-search-submit">Add →</button>
       </div>
     </div>
     <button class="sheet-cancel" onclick="closeAddModal()">Cancel</button>
@@ -276,6 +286,9 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--forest);height:100d
   <button class="filter-btn" id="fbtn-stayed" onclick="toggleFilter('stayed')">✓ Been</button>
   <button class="filter-btn" id="fbtn-notstayed" onclick="toggleFilter('notstayed')">♡ Wish</button>
   <div class="filter-divider"></div>
+  <button class="filter-btn" id="fbtn-caravan" onclick="toggleFilter('caravan')">🚐 Caravan</button>
+  <button class="filter-btn" id="fbtn-hike" onclick="toggleFilter('hike')">🥾 Hike</button>
+  <div class="filter-divider"></div>
   <button class="filter-btn" id="fbtn-swim" onclick="toggleFilter('swim')">
     <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a2 2 0 100 4 2 2 0 000-4zm-5 9.5c1 0 1.5-.5 2.5-.5s1.5.5 2.5.5 1.5-.5 2.5-.5 1.5.5 2.5.5v1.5c-1 0-1.5-.5-2.5-.5s-1.5.5-2.5.5-1.5-.5-2.5-.5-1.5.5-2.5.5V11.5zm1-4l2-2 2 2 3-3 1.5 1.5-4.5 4.5-2-2-1 1L3 9l1-1.5z"/></svg>Swim
   </button>
@@ -311,7 +324,8 @@ import { getDatabase, ref, push, update, onChildAdded, onChildChanged, onChildRe
 
 const GEMINI_URL = 'https://billowing-unit-bb41.mpg00a.workers.dev';
 const PERSON_KEY = 'camptracker_person_v4';
-const COLOURS = ['#E05A2B','#2D7A4A','#1A6FA8','#9B4DB8','#C4821A','#C4336A','#3A7A7A','#6B5A2D'];
+const COLOURS = ['#E05A2B','#2D7A4A','#1A6FA8','#9B4DB8','#C4821A','#C4336A','#3A7A7A','#6B5A2D','#FFFFFF'];
+const COLOUR_IS_LIGHT = {'#FFFFFF':true}; // colours needing dark text/border treatment
 
 const firebaseConfig = {
   apiKey:"AIzaSyBxNPvrNfJPcmn_BqYC1K2-BYCwHGEfOlk",
@@ -359,6 +373,8 @@ function siteVisible(site){
   for(const filter of activeFilters){
     if(filter==='stayed'){if(myStayed(site)!==true) return false}
     else if(filter==='notstayed'){if(myStayed(site)!==false) return false}
+    else if(filter==='caravan'){if(site.type!=='caravan') return false}
+    else if(filter==='hike'){if(site.type!=='hike') return false}
     else if(!f[filter]) return false;
   }
   return true;
@@ -477,8 +493,31 @@ document.getElementById('notes-save-btn').addEventListener('click',async()=>{
 // ── Filters ──
 window.toggleFilter=(feat)=>{
   const btn=document.getElementById('fbtn-'+feat);
-  if(activeFilters.has(feat)){activeFilters.delete(feat);btn.className='filter-btn'}
-  else{activeFilters.add(feat);btn.classList.add('active-'+feat)}
+  if(activeFilters.has(feat)){
+    activeFilters.delete(feat);
+    btn.className='filter-btn';
+  } else {
+    // caravan and hike are mutually exclusive
+    if(feat==='caravan'&&activeFilters.has('hike')){
+      activeFilters.delete('hike');
+      document.getElementById('fbtn-hike').className='filter-btn';
+    }
+    if(feat==='hike'&&activeFilters.has('caravan')){
+      activeFilters.delete('caravan');
+      document.getElementById('fbtn-caravan').className='filter-btn';
+    }
+    // stayed and notstayed are mutually exclusive
+    if(feat==='stayed'&&activeFilters.has('notstayed')){
+      activeFilters.delete('notstayed');
+      document.getElementById('fbtn-notstayed').className='filter-btn';
+    }
+    if(feat==='notstayed'&&activeFilters.has('stayed')){
+      activeFilters.delete('stayed');
+      document.getElementById('fbtn-stayed').className='filter-btn';
+    }
+    activeFilters.add(feat);
+    btn.classList.add('active-'+feat);
+  }
   applyVisibility();
 };
 
@@ -493,7 +532,7 @@ function rebuildPeopleBar(){
     el.className='person-bubble'+(hidden?' hidden-person':'');
     el.style.background=hexAlpha(colour,0.15);
     el.style.borderColor=hexAlpha(colour,0.4);
-    el.innerHTML=`<div class="person-avatar" style="background:${colour}">${initials}</div><span style="color:${colour}">${name}</span>`;
+    el.innerHTML=`<div class="person-avatar" style="background:${colour};${COLOUR_IS_LIGHT[colour]?'color:#333;border:1.5px solid #aaa':''}">${initials}</div><span style="color:${COLOUR_IS_LIGHT[colour]?'#ccc':colour}">${name}</span>`;
     el.onclick=()=>{hiddenPeople.has(name)?hiddenPeople.delete(name):hiddenPeople.add(name);rebuildPeopleBar();applyVisibility()};
     bar.appendChild(el);
   });
@@ -516,12 +555,15 @@ function createMarkerIcon(type,colour,features,stayed){
   if(f.fire) dotsHTML+=`<div class="mfi mfi-fire">${ICONS.fire}</div>`;
   if(f.pets) dotsHTML+=`<div class="mfi mfi-pets">${ICONS.pets}</div>`;
   const totalDots=(f.swim?1:0)+(f.fire?1:0)+(f.pets?1:0);
-  const wrapW=Math.max(36,totalDots*16+(totalDots>0?totalDots-1:0)*2);
+  const wrapW=Math.max(36,totalDots*20+(totalDots>0?totalDots-1:0)*3);
   const tickHTML=stayed===true?`<div class="marker-stayed-tick">${ICONS.tick}</div>`:'';
+  const isLight=COLOUR_IS_LIGHT[colour];
+  const strokeColour=isLight?'#333333':'white';
+  const strokeWidth=isLight?'2':'1.5';
   const html=`<div class="marker-wrap" style="width:${wrapW}px;position:relative">
     ${dotsHTML?`<div class="marker-feature-icons">${dotsHTML}</div>`:''}
     <svg xmlns="http://www.w3.org/2000/svg" width="36" height="44" viewBox="0 0 36 44" style="display:block;margin:0 auto">
-      <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26S36 31.5 36 18C36 8.06 27.94 0 18 0z" fill="${colour}" stroke="white" stroke-width="1.5"/>
+      <path d="M18 0C8.06 0 0 8.06 0 18c0 13.5 18 26 18 26S36 31.5 36 18C36 8.06 27.94 0 18 0z" fill="${colour}" stroke="${strokeColour}" stroke-width="${strokeWidth}"/>
       <text x="18" y="23" text-anchor="middle" font-size="14">${typeIcon}</text>
     </svg>
     ${tickHTML}
@@ -850,11 +892,33 @@ document.getElementById('url-submit').addEventListener('click',async()=>{
 });
 document.getElementById('url-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('url-submit').click()});
 
+// ── Name search submit ──
+document.getElementById('name-search-submit').addEventListener('click',async()=>{
+  if(!me){showToast('Please enter your name first');return}
+  const query=document.getElementById('name-search-input').value.trim();
+  if(!query){showToast('Please type a campsite name');return}
+  closeAddModal();
+  try{
+    setLoading(true,`Searching for "${query}"…`);
+    const searchName=query.toLowerCase().includes('australia')||query.match(/\b(nsw|vic|qld|wa|sa|tas|act|nt)\b/i)?query:`${query} Australia campsite`;
+    const parsed=await withTimeout(callGeminiWithSearch(buildSearchPrompt(searchName)),30000,'name search');
+    await saveSite(parsed,null,null);
+    setLoading(false);
+    showToast(`⛺ ${parsed.name} added!`);
+    const ll=Object.values(allSites).filter(s=>s.lat&&s.lng).map(s=>[s.lat,s.lng]);
+    if(ll.length)map.fitBounds(L.latLngBounds(ll).pad(0.3));
+    document.getElementById('name-search-input').value='';
+  }catch(err){setLoading(false);showToast(`⚠️ ${err.message}`,5000)}
+});
+document.getElementById('name-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('name-search-submit').click()});
+
 // ── Colour picker ──
 const picker=document.getElementById('colour-picker');
 COLOURS.forEach((c,i)=>{
   const sw=document.createElement('div');
-  sw.className='colour-swatch'+(i===0?' selected':'');sw.style.background=c;
+  sw.className='colour-swatch'+(i===0?' selected':'');
+  sw.style.background=c;
+  if(COLOUR_IS_LIGHT[c]) sw.style.border='3px solid #555';
   sw.onclick=()=>{document.querySelectorAll('.colour-swatch').forEach(s=>s.classList.remove('selected'));sw.classList.add('selected');selectedColour=c};
   picker.appendChild(sw);
 });
